@@ -218,3 +218,6 @@ This corrected query uses `$elemMatch` to match elements within the arrays that 
 Please replace the placeholder values ('your_mongodb_connection_string', 'your_database_name', 'your_collection_name', and 'user_id') with your actual MongoDB connection details, database name, collection name, and the user ID you're interested in. Adjust the field names according to your data structure.
 
 If you encounter any further issues or have additional details about your data structure, feel free to share, and I'll do my best to assist you.
+
+
+RiderModel.aggregate(...).toArray is not a function
