@@ -179,3 +179,42 @@ client.connect(async err => {
 Make sure to replace placeholders like `'your_mongodb_connection_string'`, `'your_database_name'`, `'your_collection_name'`, and `'user_id'` with your actual MongoDB connection details, database name, collection name, and the user ID you're interested in.
 
 This example uses the `$match` stage in the aggregation pipeline to filter documents based on the user ID and the conditions for login and logout times within the specified range. Adjust the field names according to your data structure.
+
+
+
+
+
+
+I apologize for any confusion. It seems I made an error in the query. Assuming that `LoginTimes` and `LogoutTimes` are arrays of timestamps, you should use the `$elemMatch` operator within the `$and` expression. Here's the corrected example:
+
+```javascript
+const result = await collection.aggregate([
+  {
+    $match: {
+      userId: userId,
+      $expr: {
+        $and: [
+          {
+            $elemMatch: {
+              $gte: ['$LoginTimes', startTime],
+              $lt: ['$LoginTimes', endTime]
+            }
+          },
+          {
+            $elemMatch: {
+              $gte: ['$LogoutTimes', startTime],
+              $lt: ['$LogoutTimes', endTime]
+            }
+          }
+        ]
+      }
+    }
+  }
+]).toArray();
+```
+
+This corrected query uses `$elemMatch` to match elements within the arrays that satisfy the specified conditions.
+
+Please replace the placeholder values ('your_mongodb_connection_string', 'your_database_name', 'your_collection_name', and 'user_id') with your actual MongoDB connection details, database name, collection name, and the user ID you're interested in. Adjust the field names according to your data structure.
+
+If you encounter any further issues or have additional details about your data structure, feel free to share, and I'll do my best to assist you.
