@@ -114,3 +114,68 @@ app.listen(PORT, () => {
 ```
 
 In this example, the `triggerOrderStatusGet` function is invoked within the `/order-status-update` route handler after storing the order status update. This function triggers the GET request to the `/order-status/:orderId` endpoint, effectively fetching and displaying the updated order status.
+
+
+
+
+
+
+
+
+
+
+Assuming your `LoginTimes` and `LogoutTimes` are arrays of timestamps in MongoDB, you can use the MongoDB aggregation framework to find all login and logout history for a user between 9:00 and 15:00 on the date 29-12-2023. Here's an example using the MongoDB Node.js driver:
+
+```javascript
+const MongoClient = require('mongodb').MongoClient;
+
+const uri = 'your_mongodb_connection_string';
+const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+
+client.connect(async err => {
+  if (err) {
+    console.error('Error connecting to MongoDB:', err);
+    return;
+  }
+
+  const db = client.db('your_database_name');
+  const collection = db.collection('your_collection_name');
+
+  const userId = 'user_id'; // Replace with the actual user ID
+  const targetDate = new Date('2023-12-29');
+  const startTime = new Date('2023-12-29T09:00:00.000Z');
+  const endTime = new Date('2023-12-29T15:00:00.000Z');
+
+  try {
+    const result = await collection.aggregate([
+      {
+        $match: {
+          userId: userId,
+          $expr: {
+            $and: [
+              { $gte: ['$LoginTimes', startTime] },
+              { $lt: ['$LoginTimes', endTime] },
+              { $gte: ['$LogoutTimes', startTime] },
+              { $lt: ['$LogoutTimes', endTime] }
+            ]
+          }
+        }
+      }
+    ]).toArray();
+
+    if (result.length > 0) {
+      console.log('User login and logout history between 9:00 and 15:00 on 29-12-2023:', result);
+    } else {
+      console.log('No records found for the specified date and time range.');
+    }
+  } catch (error) {
+    console.error('Error querying MongoDB:', error);
+  } finally {
+    client.close();
+  }
+});
+```
+
+Make sure to replace placeholders like `'your_mongodb_connection_string'`, `'your_database_name'`, `'your_collection_name'`, and `'user_id'` with your actual MongoDB connection details, database name, collection name, and the user ID you're interested in.
+
+This example uses the `$match` stage in the aggregation pipeline to filter documents based on the user ID and the conditions for login and logout times within the specified range. Adjust the field names according to your data structure.
