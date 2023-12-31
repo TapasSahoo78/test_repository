@@ -221,3 +221,57 @@ If you encounter any further issues or have additional details about your data s
 
 
 RiderModel.aggregate(...).toArray is not a function
+
+
+
+
+
+If you want to use the MongoDB `aggregate` function without `await`, you can use a callback-based approach. Here's an example:
+
+```javascript
+const collection = db.collection('your_collection_name');
+
+const userId = 'user_id'; // Replace with the actual user ID
+const targetDate = new Date('2023-12-29');
+const startTime = new Date('2023-12-29T09:00:00.000Z');
+const endTime = new Date('2023-12-29T15:00:00.000Z');
+
+collection.aggregate([
+  {
+    $match: {
+      userId: userId,
+      $expr: {
+        $and: [
+          {
+            $elemMatch: {
+              $gte: ['$LoginTimes', startTime],
+              $lt: ['$LoginTimes', endTime]
+            }
+          },
+          {
+            $elemMatch: {
+              $gte: ['$LogoutTimes', startTime],
+              $lt: ['$LogoutTimes', endTime]
+            }
+          }
+        ]
+      }
+    }
+  }
+]).toArray((err, result) => {
+  if (err) {
+    console.error('Error querying MongoDB:', err);
+    return;
+  }
+
+  if (result.length > 0) {
+    console.log('User login and logout history between 9:00 and 15:00 on 29-12-2023:', result);
+  } else {
+    console.log('No records found for the specified date and time range.');
+  }
+  
+  client.close();
+});
+```
+
+In this example, the `toArray` function is used as a callback function, and the closing of the MongoDB connection (`client.close()`) is placed inside the callback. Please note that using callbacks can make your code less readable and may lead to callback hell, especially if you have more asynchronous operations. Using `await` and `async/await` syntax is generally recommended for cleaner and more readable asynchronous code.
