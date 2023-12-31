@@ -1,57 +1,60 @@
-loginTimes[
-0: 2023-12-29T11:02:26.961+00:00
-]
-logoutTimes [
-0: 2023-12-29T11:04:08.267+00:00
-]
+return shiftHistoryList.map((shiftHistory) => {
+      const passingDate = shiftHistory.shiftDate;
+      const fromTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.fromTime;
+      // const cancelTimeStr = shiftHistory.cancelTime || shiftHistory.shiftTimeId?.delivery_time_id?.toTime;
+      const cancelTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.toTime;
 
+      // const timeDifferenceInMinutes = this.calculateTimeDifference(MyRiderDetails, fromTimeStr, cancelTimeStr);
 
+      const timeDifferenceInMinutes = 80;
 
-
-Certainly! If you prefer to use the `find` method without aggregation, you can retrieve the documents that match the criteria and calculate the total time difference in your Node.js code. Here's an example:
-
-```javascript
-const collection = db.collection('your_collection_name');
-
-const userId = 'user_id'; // Replace with the actual user ID
-const startTime = new Date('2023-12-29T09:00:00.000Z');
-const endTime = new Date('2023-12-29T15:00:00.000Z');
-
-const result = await collection.find({
-  userId: userId,
-  loginTimes: {
-    $elemMatch: {
-      $gte: startTime,
-      $lt: endTime
-    }
-  },
-  logoutTimes: {
-    $elemMatch: {
-      $gte: startTime,
-      $lt: endTime
-    }
-  }
-}).toArray();
-
-if (result.length > 0) {
-  let totalDuration = 0;
-
-  result.forEach(doc => {
-    doc.loginTimes.forEach(loginTime => {
-      doc.logoutTimes.forEach(logoutTime => {
-        if (loginTime >= startTime && logoutTime < endTime) {
-          totalDuration += logoutTime - loginTime;
+      //====================================================================================================
+      const userId = MyRiderDetails._id.toString(); // Replace with the actual user ID
+      const targetDate = new Date('2023-12-29');
+      const startTime = new Date('2023-12-29T12:00:00.000Z');
+      const endTime = new Date('2023-12-29T23:59:00.000Z');
+      const result = await RiderModel.find({
+        userId: userId,
+        loginTimes: {
+          $elemMatch: {
+            $gte: startTime,
+            $lt: endTime
+          }
+        },
+        logoutTimes: {
+          $elemMatch: {
+            $gte: startTime,
+            $lt: endTime
+          }
         }
-      });
+      }).exec();
+      console.log("result-------------", result);
+      if (result.length > 0) {
+        let totalDuration = 0;
+
+        result.forEach(doc => {
+          doc.loginTimes.forEach(loginTime => {
+            doc.logoutTimes.forEach(logoutTime => {
+              if (loginTime >= startTime && logoutTime < endTime) {
+                totalDuration += logoutTime - loginTime;
+              }
+            });
+          });
+        });
+
+        console.log('Total time spent between 9:00 and 15:00 on 29-12-2023:', totalDuration);
+      } else {
+        console.log('No records found for the specified date and time range.');
+      }
+
+      //====================================================================================================
+
+      // const timeDifferenceInMinutes = calculateDailyTime(MyRiderDetails, fromTimeStr, cancelTimeStr);
+
+      const hoursDifference = Math.floor(timeDifferenceInMinutes / 60);
+      const minutesDifference = timeDifferenceInMinutes % 60;
+
+      shiftHistory.dutyTime = hoursDifference + ":" + minutesDifference;
+
+      return shiftHistory;
     });
-  });
-
-  console.log('Total time spent between 9:00 and 15:00 on 29-12-2023:', totalDuration);
-} else {
-  console.log('No records found for the specified date and time range.');
-}
-```
-
-This example retrieves documents that match the criteria using the `find` method and then calculates the total time difference in your Node.js code by iterating over the retrieved documents and their arrays.
-
-Replace `'your_collection_name'` with your actual collection name, and adjust the field names according to your data structure.
