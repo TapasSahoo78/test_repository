@@ -1,60 +1,65 @@
-return shiftHistoryList.map((shiftHistory) => {
-      const passingDate = shiftHistory.shiftDate;
-      const fromTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.fromTime;
-      // const cancelTimeStr = shiftHistory.cancelTime || shiftHistory.shiftTimeId?.delivery_time_id?.toTime;
-      const cancelTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.toTime;
+To use `async/await` in your code, you can convert the mapping function passed to `map` into an `async` function. Since `map` doesn't inherently support asynchronous functions, you can use `Promise.all` to await all asynchronous operations. Here's a modified version of your code:
 
-      // const timeDifferenceInMinutes = this.calculateTimeDifference(MyRiderDetails, fromTimeStr, cancelTimeStr);
+```javascript
+const updatedShiftHistoryList = await Promise.all(shiftHistoryList.map(async (shiftHistory) => {
+  const passingDate = shiftHistory.shiftDate;
+  const fromTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.fromTime;
+  const cancelTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.toTime;
 
-      const timeDifferenceInMinutes = 80;
+  const timeDifferenceInMinutes = 80; // Replace with the actual calculation
 
-      //====================================================================================================
-      const userId = MyRiderDetails._id.toString(); // Replace with the actual user ID
-      const targetDate = new Date('2023-12-29');
-      const startTime = new Date('2023-12-29T12:00:00.000Z');
-      const endTime = new Date('2023-12-29T23:59:00.000Z');
-      const result = await RiderModel.find({
-        userId: userId,
-        loginTimes: {
-          $elemMatch: {
-            $gte: startTime,
-            $lt: endTime
-          }
-        },
-        logoutTimes: {
-          $elemMatch: {
-            $gte: startTime,
-            $lt: endTime
-          }
+  const userId = MyRiderDetails._id.toString();
+  const targetDate = new Date('2023-12-29');
+  const startTime = new Date('2023-12-29T12:00:00.000Z');
+  const endTime = new Date('2023-12-29T23:59:00.000Z');
+
+  try {
+    const result = await RiderModel.find({
+      userId: userId,
+      loginTimes: {
+        $elemMatch: {
+          $gte: startTime,
+          $lt: endTime
         }
-      }).exec();
-      console.log("result-------------", result);
-      if (result.length > 0) {
-        let totalDuration = 0;
+      },
+      logoutTimes: {
+        $elemMatch: {
+          $gte: startTime,
+          $lt: endTime
+        }
+      }
+    }).exec();
 
-        result.forEach(doc => {
-          doc.loginTimes.forEach(loginTime => {
-            doc.logoutTimes.forEach(logoutTime => {
-              if (loginTime >= startTime && logoutTime < endTime) {
-                totalDuration += logoutTime - loginTime;
-              }
-            });
+    if (result.length > 0) {
+      let totalDuration = 0;
+
+      result.forEach(doc => {
+        doc.loginTimes.forEach(loginTime => {
+          doc.logoutTimes.forEach(logoutTime => {
+            if (loginTime >= startTime && logoutTime < endTime) {
+              totalDuration += logoutTime - loginTime;
+            }
           });
         });
+      });
 
-        console.log('Total time spent between 9:00 and 15:00 on 29-12-2023:', totalDuration);
-      } else {
-        console.log('No records found for the specified date and time range.');
-      }
+      console.log('Total time spent between 9:00 and 15:00 on 29-12-2023:', totalDuration);
+    } else {
+      console.log('No records found for the specified date and time range.');
+    }
+  } catch (error) {
+    console.error('Error querying MongoDB:', error);
+  }
 
-      //====================================================================================================
+  const hoursDifference = Math.floor(timeDifferenceInMinutes / 60);
+  const minutesDifference = timeDifferenceInMinutes % 60;
 
-      // const timeDifferenceInMinutes = calculateDailyTime(MyRiderDetails, fromTimeStr, cancelTimeStr);
+  shiftHistory.dutyTime = hoursDifference + ":" + minutesDifference;
 
-      const hoursDifference = Math.floor(timeDifferenceInMinutes / 60);
-      const minutesDifference = timeDifferenceInMinutes % 60;
+  return shiftHistory;
+}));
 
-      shiftHistory.dutyTime = hoursDifference + ":" + minutesDifference;
+// Now updatedShiftHistoryList contains the modified shiftHistory objects with the calculated dutyTime.
+```
 
-      return shiftHistory;
-    });
+This modified code uses `Promise.all` to asynchronously execute the mapping function for each element in `shiftHistoryList`. Make sure to replace the placeholder value `80` with the actual calculation for `timeDifferenceInMinutes`. Also, adjust the error handling as per your requirements.
