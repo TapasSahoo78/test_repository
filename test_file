@@ -1,147 +1,93 @@
+Certainly, here are a few optimizations and suggestions for your code:
+
+1. **Async/Await**: Consider using `Promise.all` to parallelize the execution of multiple asynchronous operations instead of using `await` inside the `map` function.
+
+2. **Use Date Functions Directly**: You can simplify the code by using date functions directly instead of creating new Date objects.
+
+3. **Remove Redundant Conditions**: Some conditions appear redundant and could be simplified for better readability.
+
+4. **Consistent Variable Naming**: Ensure consistency in variable naming conventions.
+
+Here's an optimized version incorporating these suggestions:
+
+```javascript
 const currentDate = new Date();
-    const todayDate = dateFns.format(currentDate, "yyyy-MM-dd");
-    // return res.status(200).json({
-    //   currentDate
-    // });
+const todayDate = dateFns.format(currentDate, "yyyy-MM-dd");
 
-    // Calculate the start and end of the current week ======
-    const startOfWeekDate = dateFns.startOfWeek(currentDate, { weekStartsOn: 1 });
-    const endOfWeekDate = dateFns.endOfWeek(currentDate, { weekStartsOn: 1 });
+const startOfWeekDate = dateFns.startOfWeek(currentDate, { weekStartsOn: 1 });
+const endOfWeekDate = dateFns.endOfWeek(currentDate, { weekStartsOn: 1 });
 
-    // ======================= this week =======================
-    var thisWeek = [];
-    // Iterate through the days of the week and push them into the array
-    let currentDay = startOfWeekDate;
+const thisWeek = [];
 
-    while (currentDay <= endOfWeekDate) {
-      let dateAndDay = {};
-      dateAndDay.date = dateFns.format(currentDay, "yyyy-MM-dd");
-      // Format the date to get the day name (e.g., "Monday", "Tuesday", etc.)
-      // 'EEEE' represents the full day name
-      let dayname = (dateAndDay.dayName = dateFns.format(currentDay, "EEEE"));
+for (let currentDay = startOfWeekDate; currentDay <= endOfWeekDate; currentDay = dateFns.addDays(currentDay, 1)) {
+  const dateAndDay = {
+    date: dateFns.format(currentDay, "yyyy-MM-dd"),
+    dayName: dateFns.format(currentDay, "EEEE"),
+    shiftTimes: [],
+  };
 
-      let query = ShiftTimesModel.find({
-        shift_day: dayname,
-        isActive: true,
-        isDeleted: false,
-      });
-      query = query.populate({
-        path: "delivery_time_id",
-        match: {
-          isActive: true,
-          isDeleted: false,
-        },
-        select: "shiftBreakUp fromTime toTime totalHours lateNightCharge",
-      });
+  const query = ShiftTimesModel.find({
+    shift_day: dateAndDay.dayName,
+    isActive: true,
+    isDeleted: false,
+  }).populate({
+    path: "delivery_time_id",
+    match: {
+      isActive: true,
+      isDeleted: false,
+    },
+    select: "shiftBreakUp fromTime toTime totalHours lateNightCharge",
+  });
 
-      // Execute the query with 'lean' option to get plain JavaScript objects
-      let shiftTimes = await query.lean().exec();
+  const shiftTimes = await query.lean().exec();
 
-      // Calculate the 'shiftOverStatus' based on current time and shift times
-      shiftTimes = await Promise.all(
-        shiftTimes.map(async (shift) => {
-          const currentTime = new Date();
-          // const fromTime = new Date(shift.delivery_time_id.fromTime);
-          // const toTime = new Date(shift.delivery_time_id.toTime);
-          const fromTimeParts = shift.delivery_time_id.fromTime.split(":");
-          const toTimeParts = shift.delivery_time_id.toTime.split(":");
+  dateAndDay.shiftTimes = await Promise.all(shiftTimes.map(async (shift) => {
+    const currentTime = new Date();
+    const [fromHour, fromMinute] = shift.delivery_time_id.fromTime.split(":");
+    const [toHour, toMinute] = shift.delivery_time_id.toTime.split(":");
 
-          const fromTime = dateFns.setHours(
-            dateFns.setMinutes(new Date(), fromTimeParts[1]),
-            fromTimeParts[0]
-          );
+    const fromTime = dateFns.setHours(dateFns.setMinutes(currentDate, fromMinute), fromHour);
+    const toTime = dateFns.setHours(dateFns.setMinutes(currentDate, toMinute), toHour);
 
-          const toTime = dateFns.setHours(
-            dateFns.setMinutes(new Date(), toTimeParts[1]),
-            toTimeParts[0]
-          );
-          // returns true or false
-          // shift.delivery_time_id.shiftOverStatus = currentTime > fromTime;
+    let threeInOneStat = "1";
 
-          // checks whether shift history is available or not
-          let shiftHistoryExists = await super.getByCustomOptionsSingle(
-            req,
-            ShiftHistoryModel,
-            {
-              riderId: req.rider,
-              shiftTimeId: shift._id,
-              shiftDate: dateFns.format(currentDay, "yyyy-MM-dd"),
+    const shiftHistoryExists = await super.getByCustomOptionsSingle(req, ShiftHistoryModel, {
+      riderId: req.rider,
+      shiftTimeId: shift._id,
+      shiftDate: dateFns.format(currentDay, "yyyy-MM-dd"),
+      cancelTime: null,
+    });
 
-              cancelTime: null,
-            }
-          );
-
-          // threeInOneStat ====> 0->ShiftOver, 1->AddBtn, 2->CancelBtn 5->Remove Prev Day
-          shift.delivery_time_id.threeInOneStat = "1";
-          // shift.delivery_time_id = {};
-          if (shiftHistoryExists != null) {
-            // shiftHistory available
-            if (currentTime > toTime) {
-              // shift endTime is over
-              shift.delivery_time_id.threeInOneStat = "0";
-              // shift.delivery_time_id = {};
-            }
-            shift.delivery_time_id.threeInOneStat = "2";
-            // shift.delivery_time_id.threeInOneStat = "5555555555555";  //Todat Modified ---> 31.12.2024
-          } else {
-            if (
-              dateFns.format(currentDay, "yyyy-MM-dd") <
-              dateFns.format(currentTime, "yyyy-MM-dd")
-            ) {
-              shift.delivery_time_id.threeInOneStat = "5555555555555";
-            }
-
-            // shiftHistory NOT-available
-            if (
-              dateFns.format(currentDay, "yyyy-MM-dd") ==
-              dateFns.format(currentTime, "yyyy-MM-dd")
-            ) {
-              // if loopingDate is todayDate
-              if (currentTime > toTime) {
-                // currentTime is more than shiftEndTime
-                shift.delivery_time_id.threeInOneStat = "0";
-                // shift.delivery_time_id = {};
-              } else {
-                // currentTime is less than shiftEndTime
-                shift.delivery_time_id.threeInOneStat = "1";
-              }
-            }
-          }
-
-          // important
-          return shift;
-        })
-      );
-
-      if (shiftTimes.length > 0) {
-        dateAndDay.shiftTimes = shiftTimes;
-      } else {
-        dateAndDay.shiftTimes = [];
+    if (shiftHistoryExists !== null) {
+      threeInOneStat = currentTime > toTime ? "0" : "2";
+    } else {
+      if (dateFns.isBefore(currentDay, currentDate)) {
+        threeInOneStat = "5555555555555";
       }
 
-      thisWeek.push(dateAndDay);
-      // increase the day by 1
-      currentDay = dateFns.addDays(currentDay, 1);
+      if (dateFns.isEqual(currentDay, currentDate)) {
+        threeInOneStat = currentTime > toTime ? "0" : "1";
+      }
     }
 
-    // thisWeek now doesnot contain items where (threeInOneStat = 0 for currentDate)
-    // =================================================
-    thisWeek = thisWeek.filter((day) => {
-      // Check if the date is not equal to the current date and threeInOneStat is not 0
-      return day.date !== todayDate ||
-        day.shiftTimes.some(
-          (shift) => shift.delivery_time_id.threeInOneStat !== '0'
-        );
-    });
+    shift.delivery_time_id.threeInOneStat = threeInOneStat;
+    return shift;
+  }));
 
-    // Filter the array to remove objects with threeInOneStat equal to 0
-    thisWeek.forEach((day) => {
-      day.shiftTimes = day.shiftTimes.filter((shift) => shift.delivery_time_id.threeInOneStat !== "5555555555555");
-    });
+  if (dateAndDay.shiftTimes.length > 0) {
+    thisWeek.push(dateAndDay);
+  }
+}
 
-    // To remove days with no shifts, you can filter them out like this:
-    thisWeek = thisWeek.filter((day) => day.shiftTimes.length > 0);
+thisWeek = thisWeek.filter((day) => day.date !== todayDate || day.shiftTimes.some((shift) => shift.delivery_time_id.threeInOneStat !== '0'));
 
-     return res.status(200).json({
-       thisWeek
-     });
+thisWeek.forEach((day) => {
+  day.shiftTimes = day.shiftTimes.filter((shift) => shift.delivery_time_id.threeInOneStat !== "5555555555555");
+});
+
+thisWeek = thisWeek.filter((day) => day.shiftTimes.length > 0);
+
+return res.status(200).json({ thisWeek });
+```
+
+This version aims for improved readability and performance. Feel free to adapt it based on your specific requirements and coding style.
