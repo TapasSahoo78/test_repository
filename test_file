@@ -22,3 +22,54 @@ return res.status(200).json({
 ```
 
 This modification checks that the date is not equal to today or yesterday, and it also filters out shifts with `threeInOneStat` equal to "0" or "5555555555555". Adjust this based on your specific requirements.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Certainly, if you want to include today and all future days in the `thisWeek` list while removing all past days, you can adjust the filtering logic. Here's how you can modify the code:
+
+```javascript
+// Filter out past days from the thisWeek list
+thisWeek = thisWeek.filter((day) => {
+  // Check if the date is equal to today or a future date
+  return dateFns.isAfter(day.date, currentDate) &&
+    day.shiftTimes.some((shift) => shift.delivery_time_id.threeInOneStat !== '0');
+});
+
+// Filter the array to remove objects with threeInOneStat equal to "5555555555555"
+thisWeek.forEach((day) => {
+  day.shiftTimes = day.shiftTimes.filter((shift) => shift.delivery_time_id.threeInOneStat !== "5555555555555");
+});
+
+// To remove days with no shifts, you can filter them out like this:
+thisWeek = thisWeek.filter((day) => day.shiftTimes.length > 0);
+
+return res.status(200).json({
+  thisWeek
+});
+```
+
+This modification checks that the date is equal to today or a future date, and it also filters out shifts with `threeInOneStat` equal to "5555555555555". Adjust this based on your specific requirements.
