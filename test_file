@@ -1,21 +1,24 @@
-// thisWeek now doesnot contain items where (threeInOneStat = 0 for currentDate)
-    // =================================================
-    thisWeek = thisWeek.filter((day) => {
-      // Check if the date is not equal to the current date and threeInOneStat is not 0
-      return day.date !== todayDate ||
-        day.shiftTimes.some(
-          (shift) => shift.delivery_time_id.threeInOneStat !== '0'
-        );
-    });
+Certainly, if you want to remove today and the previous day from the `thisWeek` list, you can adjust the filtering logic. Here's how you can modify the code:
 
-    // Filter the array to remove objects with threeInOneStat equal to 0
-    thisWeek.forEach((day) => {
-      day.shiftTimes = day.shiftTimes.filter((shift) => shift.delivery_time_id.threeInOneStat !== "5555555555555");
-    });
+```javascript
+// Filter out today and previous day from the thisWeek list
+thisWeek = thisWeek.filter((day) => {
+  // Check if the date is not equal to today or yesterday
+  return day.date !== todayDate && dateFns.isAfter(day.date, dateFns.subDays(currentDate, 1)) &&
+    day.shiftTimes.some((shift) => shift.delivery_time_id.threeInOneStat !== '0');
+});
 
-    // To remove days with no shifts, you can filter them out like this:
-    thisWeek = thisWeek.filter((day) => day.shiftTimes.length > 0);
+// Filter the array to remove objects with threeInOneStat equal to 0 or "5555555555555"
+thisWeek.forEach((day) => {
+  day.shiftTimes = day.shiftTimes.filter((shift) => shift.delivery_time_id.threeInOneStat !== "0" && shift.delivery_time_id.threeInOneStat !== "5555555555555");
+});
 
-    // return res.status(200).json({
-    //   thisWeek
-    // });
+// To remove days with no shifts, you can filter them out like this:
+thisWeek = thisWeek.filter((day) => day.shiftTimes.length > 0);
+
+return res.status(200).json({
+  thisWeek
+});
+```
+
+This modification checks that the date is not equal to today or yesterday, and it also filters out shifts with `threeInOneStat` equal to "0" or "5555555555555". Adjust this based on your specific requirements.
