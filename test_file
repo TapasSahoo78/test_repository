@@ -1,67 +1,147 @@
-To use `async/await` in your `processShiftHistoryList` function, you need to make the function itself `async`. Additionally, since `RiderModel.find` returns a promise, you can `await` it to get the result. Here's a modified version of your code:
+const currentDate = new Date();
+    const todayDate = dateFns.format(currentDate, "yyyy-MM-dd");
+    // return res.status(200).json({
+    //   currentDate
+    // });
 
-```javascript
-static async processShiftHistoryList(shiftHistoryList, MyRiderDetails) {
-  return await Promise.all(shiftHistoryList.map(async (shiftHistory) => {
-    const passingDate = shiftHistory.shiftDate;
-    const fromTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.fromTime;
-    const cancelTimeStr = shiftHistory.shiftTimeId?.delivery_time_id?.toTime;
+    // Calculate the start and end of the current week ======
+    const startOfWeekDate = dateFns.startOfWeek(currentDate, { weekStartsOn: 1 });
+    const endOfWeekDate = dateFns.endOfWeek(currentDate, { weekStartsOn: 1 });
 
-    const timeDifferenceInMinutes = 80;
+    // ======================= this week =======================
+    var thisWeek = [];
+    // Iterate through the days of the week and push them into the array
+    let currentDay = startOfWeekDate;
 
-    const userId = MyRiderDetails._id.toString();
-    const targetDate = new Date('2023-12-29');
-    const startTime = new Date('2023-12-29T12:00:00.000Z');
-    const endTime = new Date('2023-12-29T23:59:00.000Z');
+    while (currentDay <= endOfWeekDate) {
+      let dateAndDay = {};
+      dateAndDay.date = dateFns.format(currentDay, "yyyy-MM-dd");
+      // Format the date to get the day name (e.g., "Monday", "Tuesday", etc.)
+      // 'EEEE' represents the full day name
+      let dayname = (dateAndDay.dayName = dateFns.format(currentDay, "EEEE"));
 
-    try {
-      const result = await RiderModel.find({
-        userId: userId,
-        loginTimes: {
-          $elemMatch: {
-            $gte: startTime,
-            $lt: endTime
-          }
+      let query = ShiftTimesModel.find({
+        shift_day: dayname,
+        isActive: true,
+        isDeleted: false,
+      });
+      query = query.populate({
+        path: "delivery_time_id",
+        match: {
+          isActive: true,
+          isDeleted: false,
         },
-        logoutTimes: {
-          $elemMatch: {
-            $gte: startTime,
-            $lt: endTime
-          }
-        }
-      }).exec();
+        select: "shiftBreakUp fromTime toTime totalHours lateNightCharge",
+      });
 
-      console.log("result-------------", result);
+      // Execute the query with 'lean' option to get plain JavaScript objects
+      let shiftTimes = await query.lean().exec();
 
-      if (result.length > 0) {
-        let totalDuration = 0;
+      // Calculate the 'shiftOverStatus' based on current time and shift times
+      shiftTimes = await Promise.all(
+        shiftTimes.map(async (shift) => {
+          const currentTime = new Date();
+          // const fromTime = new Date(shift.delivery_time_id.fromTime);
+          // const toTime = new Date(shift.delivery_time_id.toTime);
+          const fromTimeParts = shift.delivery_time_id.fromTime.split(":");
+          const toTimeParts = shift.delivery_time_id.toTime.split(":");
 
-        result.forEach(doc => {
-          doc.loginTimes.forEach(loginTime => {
-            doc.logoutTimes.forEach(logoutTime => {
-              if (loginTime >= startTime && logoutTime < endTime) {
-                totalDuration += logoutTime - loginTime;
+          const fromTime = dateFns.setHours(
+            dateFns.setMinutes(new Date(), fromTimeParts[1]),
+            fromTimeParts[0]
+          );
+
+          const toTime = dateFns.setHours(
+            dateFns.setMinutes(new Date(), toTimeParts[1]),
+            toTimeParts[0]
+          );
+          // returns true or false
+          // shift.delivery_time_id.shiftOverStatus = currentTime > fromTime;
+
+          // checks whether shift history is available or not
+          let shiftHistoryExists = await super.getByCustomOptionsSingle(
+            req,
+            ShiftHistoryModel,
+            {
+              riderId: req.rider,
+              shiftTimeId: shift._id,
+              shiftDate: dateFns.format(currentDay, "yyyy-MM-dd"),
+
+              cancelTime: null,
+            }
+          );
+
+          // threeInOneStat ====> 0->ShiftOver, 1->AddBtn, 2->CancelBtn 5->Remove Prev Day
+          shift.delivery_time_id.threeInOneStat = "1";
+          // shift.delivery_time_id = {};
+          if (shiftHistoryExists != null) {
+            // shiftHistory available
+            if (currentTime > toTime) {
+              // shift endTime is over
+              shift.delivery_time_id.threeInOneStat = "0";
+              // shift.delivery_time_id = {};
+            }
+            shift.delivery_time_id.threeInOneStat = "2";
+            // shift.delivery_time_id.threeInOneStat = "5555555555555";  //Todat Modified ---> 31.12.2024
+          } else {
+            if (
+              dateFns.format(currentDay, "yyyy-MM-dd") <
+              dateFns.format(currentTime, "yyyy-MM-dd")
+            ) {
+              shift.delivery_time_id.threeInOneStat = "5555555555555";
+            }
+
+            // shiftHistory NOT-available
+            if (
+              dateFns.format(currentDay, "yyyy-MM-dd") ==
+              dateFns.format(currentTime, "yyyy-MM-dd")
+            ) {
+              // if loopingDate is todayDate
+              if (currentTime > toTime) {
+                // currentTime is more than shiftEndTime
+                shift.delivery_time_id.threeInOneStat = "0";
+                // shift.delivery_time_id = {};
+              } else {
+                // currentTime is less than shiftEndTime
+                shift.delivery_time_id.threeInOneStat = "1";
               }
-            });
-          });
-        });
+            }
+          }
 
-        console.log('Total time spent between 9:00 and 15:00 on 29-12-2023:', totalDuration);
+          // important
+          return shift;
+        })
+      );
+
+      if (shiftTimes.length > 0) {
+        dateAndDay.shiftTimes = shiftTimes;
       } else {
-        console.log('No records found for the specified date and time range.');
+        dateAndDay.shiftTimes = [];
       }
-    } catch (error) {
-      console.error('Error querying MongoDB:', error);
+
+      thisWeek.push(dateAndDay);
+      // increase the day by 1
+      currentDay = dateFns.addDays(currentDay, 1);
     }
 
-    const hoursDifference = Math.floor(timeDifferenceInMinutes / 60);
-    const minutesDifference = timeDifferenceInMinutes % 60;
+    // thisWeek now doesnot contain items where (threeInOneStat = 0 for currentDate)
+    // =================================================
+    thisWeek = thisWeek.filter((day) => {
+      // Check if the date is not equal to the current date and threeInOneStat is not 0
+      return day.date !== todayDate ||
+        day.shiftTimes.some(
+          (shift) => shift.delivery_time_id.threeInOneStat !== '0'
+        );
+    });
 
-    shiftHistory.dutyTime = hoursDifference + ":" + minutesDifference;
+    // Filter the array to remove objects with threeInOneStat equal to 0
+    thisWeek.forEach((day) => {
+      day.shiftTimes = day.shiftTimes.filter((shift) => shift.delivery_time_id.threeInOneStat !== "5555555555555");
+    });
 
-    return shiftHistory;
-  }));
-}
-```
+    // To remove days with no shifts, you can filter them out like this:
+    thisWeek = thisWeek.filter((day) => day.shiftTimes.length > 0);
 
-This code makes the `processShiftHistoryList` function `async` and uses `await` to handle the promise returned by `RiderModel.find`. Also, it utilizes `Promise.all` to handle multiple asynchronous operations concurrently. Make sure to adjust error handling based on your requirements.
+     return res.status(200).json({
+       thisWeek
+     });
