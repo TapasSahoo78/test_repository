@@ -1,277 +1,164 @@
-To achieve an automatic call to the GET webhook endpoint when a POST API is called, you can use a function to trigger the GET request within the POST route handler. Here's an example:
-
-```javascript
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const { MongoClient } = require('mongodb');
-const fetch = require('node-fetch');
-
-const app = express();
-const PORT = 3000;
-
-// MongoDB connection URI (replace with your MongoDB connection string)
-const mongoURI = 'mongodb://localhost:27017/your-database-name';
-
-// Generate a unique ID
-const uniqueId = uuidv4();
-
-// Middleware to parse JSON bodies
-app.use(express.json());
-
-// Handle incoming order status updates (POST)
-app.post('/order-status-update', async (req, res) => {
-  try {
-    // Generate an event ID and event name
-    const eventId = uuidv4();
-    const eventName = `OrderStatusUpdate_${req.body.status}_${eventId}`;
-
-    // Connect to MongoDB
-    const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
-    await client.connect();
-
-    // Access the database and collection
-    const database = client.db('your-database-name');
-    const collection = database.collection('orderStatusUpdates');
-
-    // Store the order status update, event ID, and event name in the database
-    const orderStatusUpdate = {
-      uniqueId,
-      eventId,
-      eventName,
-      status: req.body.status,
-      orderId: req.body.orderId,
-      timestamp: new Date(),
-    };
-
-    await collection.insertOne(orderStatusUpdate);
-
-    // Trigger a GET request to retrieve and display the updated order status
-    await triggerOrderStatusGet(orderStatusUpdate.orderId);
-
-    // Close the MongoDB connection
-    await client.close();
-
-    console.log('Order status update stored in the database:', orderStatusUpdate);
-
-    res.status(200).send('Order status update received and stored');
-  } catch (error) {
-    console.error('Error storing order status update:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
-// Retrieve order status updates for a specific order (GET)
-app.get('/order-status/:orderId', async (req, res) => {
-  try {
-    const orderId = req.params.orderId;
-
-    // Connect to MongoDB
-    const client = new MongoClient(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true });
-    await client.connect();
-
-    // Access the database and collection
-    const database = client.db('your-database-name');
-    const collection = database.collection('orderStatusUpdates');
-
-    // Retrieve order status updates for the specified order ID
-    const orderStatusUpdates = await collection.find({ orderId }).toArray();
-
-    // Close the MongoDB connection
-    await client.close();
-
-    res.json({ orderId, orderStatusUpdates });
-  } catch (error) {
-    console.error('Error retrieving order status updates:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
-// Function to trigger the order status GET webhook
-async function triggerOrderStatusGet(orderId) {
-  const webhookUrl = `http://localhost:${PORT}/order-status/${orderId}`; // Replace with your actual webhook URL
-
-  try {
-    // Send a GET request to the webhook URL
-    await fetch(webhookUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    console.log('Order status GET webhook triggered successfully');
-  } catch (error) {
-    console.error('Error triggering order status GET webhook:', error);
-  }
-}
-
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-  console.log(`Webhook URL (Update): http://localhost:${PORT}/order-status-update`);
-  console.log(`Webhook URL (Get): http://localhost:${PORT}/order-status/:orderId`);
-  console.log(`Unique ID: ${uniqueId}`);
-});
-```
-
-In this example, the `triggerOrderStatusGet` function is invoked within the `/order-status-update` route handler after storing the order status update. This function triggers the GET request to the `/order-status/:orderId` endpoint, effectively fetching and displaying the updated order status.
-
-
-
-
-
-
-
-
-
-
-Assuming your `LoginTimes` and `LogoutTimes` are arrays of timestamps in MongoDB, you can use the MongoDB aggregation framework to find all login and logout history for a user between 9:00 and 15:00 on the date 29-12-2023. Here's an example using the MongoDB Node.js driver:
-
-```javascript
-const MongoClient = require('mongodb').MongoClient;
-
-const uri = 'your_mongodb_connection_string';
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-
-client.connect(async err => {
-  if (err) {
-    console.error('Error connecting to MongoDB:', err);
-    return;
-  }
-
-  const db = client.db('your_database_name');
-  const collection = db.collection('your_collection_name');
-
-  const userId = 'user_id'; // Replace with the actual user ID
-  const targetDate = new Date('2023-12-29');
-  const startTime = new Date('2023-12-29T09:00:00.000Z');
-  const endTime = new Date('2023-12-29T15:00:00.000Z');
-
-  try {
-    const result = await collection.aggregate([
-      {
-        $match: {
-          userId: userId,
-          $expr: {
-            $and: [
-              { $gte: ['$LoginTimes', startTime] },
-              { $lt: ['$LoginTimes', endTime] },
-              { $gte: ['$LogoutTimes', startTime] },
-              { $lt: ['$LogoutTimes', endTime] }
-            ]
-          }
+public function bookToto(Request $request)
+    {
+        $user = User::where('access_token', $request->header('token'))->first();
+        $validator = Validator::make($request->all(), [
+            'pickup_location' => 'required|string',
+            'pickup_latitude' => 'required|string',
+            'pickup_longitude' => 'required|string',
+            'drop_location' => 'required|string',
+            'drop_latitude' => 'required|string',
+            'drop_longitude' => 'required|string',
+            'payment_by' => 'required|string',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => $validator->errors()->first(),
+                ],
+                200
+            );
         }
-      }
-    ]).toArray();
+        DB::beginTransaction();
+        try {
+            $response = getDistanceAndEta($request->pickup_latitude, $request->pickup_longitude, $request->drop_latitude, $request->drop_longitude);
+            $duration = $response['duration'];
+            $distanceInMeters = $response['distance'];
+            // Convert duration from seconds to minutes
+            $etaInMinutes = round($duration / 60, 2);
+            info($etaInMinutes);
+            info($distanceInMeters);
+            $distanceInKm = $distanceInMeters / 1000;
+            info($distanceInKm);
+            if ($distanceInKm > 5) {
+                return response()->json(
+                    [
+                        'status' => true,
+                        'message' => "Toto is not available in 5 kms",
+                    ],
+                    200
+                );
+            }
+            info("--------------------------------------------------------------");
+            $booking = new Booking;
+            $booking->user_id = $user->id;
+            $booking->booking_no = $booking->generateBookingNo();
+            $booking->pickup_location = $request->pickup_location;
+            $booking->pickup_latitude = $request->pickup_latitude;
+            $booking->pickup_longitude = $request->pickup_longitude;
+            $booking->drop_location = $request->drop_location;
+            $booking->drop_latitude = $request->drop_latitude;
+            $booking->drop_longitude = $request->drop_longitude;
+            $booking->payment_by = $request->payment_by;
+            $booking->eta = $etaInMinutes;
+            $booking->save();
+            $booking_log = new BookingLog;
+            $booking_log->booking_id = $booking->id;
+            $booking_log->response_given_by = 'Customer';
+            $booking_log->response_giver_id = $user->id;
+            $booking_log->response_given_at = Carbon::now();
+            $booking_log->status_id = 1;
+            $booking_log->save();
 
-    if (result.length > 0) {
-      console.log('User login and logout history between 9:00 and 15:00 on 29-12-2023:', result);
-    } else {
-      console.log('No records found for the specified date and time range.');
+            $stands = Stand::nearestStand($request->pickup_latitude, $request->pickup_longitude)->pluck('id');
+            info($stands);
+
+            $data = [
+                'booking' => $booking,
+                'customer' => $user,
+            ];
+
+            if (count($stands) > 0) {
+                $stand_manager_one = StandManagerList::with('getStandManager')->where('stand_id', $stands[0])->first();
+                info($stand_manager_one);
+                if (isset($stand_manager_one) && !empty($stand_manager_one)) {
+                    $todayDate = Carbon::now()->toDateString();
+                    $totos = Toto::select('totos.*')
+                        ->join('toto_attendances', 'toto_attendances.toto_id', '=', 'totos.id')
+                        ->where('stand_id', $stands[0])
+                        ->whereDate('toto_attendances.created_at', $todayDate)
+                        ->where('totos.is_online', 1)
+                        ->where('totos.is_available', 1)
+                        ->get();
+
+                    if ($stand_manager_one->getStandManager->is_online == '1') {
+                        info("11111");
+                        $channels = [];
+                        array_push($channels, 'standmanager-' . $stand_manager_one->stand_manager_id);
+                        if (!empty($channels)) {
+                            $pusher = new Pusher(
+                                config('broadcasting.connections.pusher.key'),
+                                config('broadcasting.connections.pusher.secret'),
+                                config('broadcasting.connections.pusher.app_id'),
+                                config('broadcasting.connections.pusher.options')
+                            );
+                            $pusher->trigger($channels, 'booking-request', $data);
+                        }
+                        DB::commit();
+
+                        return response()->json(
+                            [
+                                'status' => true,
+                                'message' => "booking request successfully created and send to stand manager.",
+                            ],
+                            200
+                        );
+                    }
+
+                    if (count($totos) > 0) {
+                        info("22222");
+                        $channels = [];
+                        // foreach ($totos as $toto) {
+                        array_push($channels, 'driver-' . $totos[0]->id);
+                        // }
+                        if (!empty($channels)) {
+                            $pusher = new Pusher(
+                                config('broadcasting.connections.pusher.key'),
+                                config('broadcasting.connections.pusher.secret'),
+                                config('broadcasting.connections.pusher.app_id'),
+                                config('broadcasting.connections.pusher.options')
+                            );
+                            $pusher->trigger($channels, 'booking-request', $data);
+                        }
+                        DB::commit();
+                        return response()->json(
+                            [
+                                'status' => true,
+                                'message' => "Booking request successfully created and send to driver",
+                            ],
+                            200
+                        );
+                    }
+                } else {
+                    info("444444444444444444444444444444");
+                    DB::commit();
+                    return response()->json(
+                        [
+                            'status' => false,
+                            'message' => "Drivers not found!",
+                        ],
+                        200
+                    );
+                }
+            } else {
+                DB::commit();
+                return response()->json(
+                    [
+                        'status' => false,
+                        'message' => "Nearby stand is not found!",
+                    ],
+                    200
+                );
+            }
+        } catch (Exception $e) {
+            info($e);
+            DB::rollback();
+            return response()->json(
+                [
+                    'status' => false,
+                    'message' => "Something went wrong!",
+                ],
+                200
+            );
+        }
     }
-  } catch (error) {
-    console.error('Error querying MongoDB:', error);
-  } finally {
-    client.close();
-  }
-});
-```
-
-Make sure to replace placeholders like `'your_mongodb_connection_string'`, `'your_database_name'`, `'your_collection_name'`, and `'user_id'` with your actual MongoDB connection details, database name, collection name, and the user ID you're interested in.
-
-This example uses the `$match` stage in the aggregation pipeline to filter documents based on the user ID and the conditions for login and logout times within the specified range. Adjust the field names according to your data structure.
-
-
-
-
-
-
-I apologize for any confusion. It seems I made an error in the query. Assuming that `LoginTimes` and `LogoutTimes` are arrays of timestamps, you should use the `$elemMatch` operator within the `$and` expression. Here's the corrected example:
-
-```javascript
-const result = await collection.aggregate([
-  {
-    $match: {
-      userId: userId,
-      $expr: {
-        $and: [
-          {
-            $elemMatch: {
-              $gte: ['$LoginTimes', startTime],
-              $lt: ['$LoginTimes', endTime]
-            }
-          },
-          {
-            $elemMatch: {
-              $gte: ['$LogoutTimes', startTime],
-              $lt: ['$LogoutTimes', endTime]
-            }
-          }
-        ]
-      }
-    }
-  }
-]).toArray();
-```
-
-This corrected query uses `$elemMatch` to match elements within the arrays that satisfy the specified conditions.
-
-Please replace the placeholder values ('your_mongodb_connection_string', 'your_database_name', 'your_collection_name', and 'user_id') with your actual MongoDB connection details, database name, collection name, and the user ID you're interested in. Adjust the field names according to your data structure.
-
-If you encounter any further issues or have additional details about your data structure, feel free to share, and I'll do my best to assist you.
-
-
-RiderModel.aggregate(...).toArray is not a function
-
-
-
-
-
-If you want to use the MongoDB `aggregate` function without `await`, you can use a callback-based approach. Here's an example:
-
-```javascript
-const collection = db.collection('your_collection_name');
-
-const userId = 'user_id'; // Replace with the actual user ID
-const targetDate = new Date('2023-12-29');
-const startTime = new Date('2023-12-29T09:00:00.000Z');
-const endTime = new Date('2023-12-29T15:00:00.000Z');
-
-collection.aggregate([
-  {
-    $match: {
-      userId: userId,
-      $expr: {
-        $and: [
-          {
-            $elemMatch: {
-              $gte: ['$LoginTimes', startTime],
-              $lt: ['$LoginTimes', endTime]
-            }
-          },
-          {
-            $elemMatch: {
-              $gte: ['$LogoutTimes', startTime],
-              $lt: ['$LogoutTimes', endTime]
-            }
-          }
-        ]
-      }
-    }
-  }
-]).toArray((err, result) => {
-  if (err) {
-    console.error('Error querying MongoDB:', err);
-    return;
-  }
-
-  if (result.length > 0) {
-    console.log('User login and logout history between 9:00 and 15:00 on 29-12-2023:', result);
-  } else {
-    console.log('No records found for the specified date and time range.');
-  }
-  
-  client.close();
-});
-```
-
-In this example, the `toArray` function is used as a callback function, and the closing of the MongoDB connection (`client.close()`) is placed inside the callback. Please note that using callbacks can make your code less readable and may lead to callback hell, especially if you have more asynchronous operations. Using `await` and `async/await` syntax is generally recommended for cleaner and more readable asynchronous code.
