@@ -1,55 +1,54 @@
-const express = require('express');
-const app = express();
-const port = 3000;
+If you want to prevent a hidden input field from being submitted with the form when its display property is set to "none", you can disable it before the form submission. Here's how you can modify the previous example to achieve this:
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hide and Show Form Input</title>
+<style>
+  #hiddenInput {
+    display: none; /* Initially hide the input */
+  }
+</style>
+</head>
+<body>
 
-// Middleware that is only executed for requests to "/order/webhook"
-// app.use('/order/webhook', (req, res, next) => {
-app.use(function (req, res, next) {
-    let oldWrite = res.write
-    let oldEnd = res.end
+<form id="myForm" action="submit.php" method="POST">
+  <label for="toggleInput">Show Input:</label>
+  <input type="checkbox" id="toggleInputCheckbox">
 
-    let chunks = [];
+  <div id="hiddenInput">
+    <label for="textInput">Input Field:</label>
+    <input type="text" id="textInput">
+  </div>
 
-    res.write = function (chunk) {
-        chunks.push(chunk);
-        return oldWrite.apply(res, arguments);
-    };
+  <button type="submit">Submit</button>
+</form>
 
-    res.end = function (chunk) {
-        if (chunk)
-            chunks.push(chunk);
-        var body = Buffer.concat(chunks).toString('utf8');
-        // console.log(req, body);
-        console.log(req.body);
-        // var body = Buffer.concat(chunks).toString('utf8');
-        // console.log(req, body);
-        // updateapilog(req, body)
-        oldEnd.apply(res, arguments);
-    };
-    next();
-});
+<script>
+  const toggleInputCheckbox = document.getElementById('toggleInputCheckbox');
+  const hiddenInput = document.getElementById('hiddenInput');
 
+  toggleInputCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+      hiddenInput.style.display = 'block'; // Show the input
+    } else {
+      hiddenInput.style.display = 'none'; // Hide the input
+    }
+  });
 
-// Endpoint to handle incoming order status change webhooks
-app.post('/order/webhook', (req, res) => {
-    const {
-        orderID,
-        status
-    } = req.body;
+  document.getElementById('myForm').addEventListener('submit', function() {
+    // Disable hidden input before submitting the form
+    if (!toggleInputCheckbox.checked) {
+      document.getElementById('textInput').disabled = true;
+    }
+  });
+</script>
 
-    req.body.event = "Order Update";
-    req.body.eventId = orderID;
-    req.body.order = "test";
+</body>
+</html>
+```
 
-    // Your logic here
-    res.status(200).send('Webhook received successfully');
-});
-
-
-
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
+In this modified version, when the form is submitted, it checks if the checkbox is unchecked. If it's unchecked, it disables the text input field, preventing its value from being submitted with the form.
