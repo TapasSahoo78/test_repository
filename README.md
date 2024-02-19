@@ -1,38 +1,40 @@
-It seems like you've provided a script that aims to toggle the visibility of certain fields based on the value of a checkbox (`payment_mode`). Additionally, it disables certain fields if the checkbox's value is not 'online'. However, it looks like there are some issues in your script. Let me point them out:
+If you're using Apache server, you can achieve this by configuring a virtual host to listen on port 80 (HTTP) and proxy requests to your Node.js application running on port 8181. Here's how you can do it:
 
-1. In your script, you're using `getElementById` to get the element with the id `'payment_mode'`, but you're referring to it as a checkbox. If it's supposed to be a checkbox, you should use `document.querySelector('[name="payment_mode"]')` or `document.getElementById('payment_mode_checkbox')`, assuming you have an element with that id.
+1. **Enable Apache modules**: Make sure the `proxy` and `proxy_http` modules are enabled in your Apache server. You can enable them using the following commands:
 
-2. You're checking `toggleInputCheckbox.value` in your submit event listener. If `toggleInputCheckbox` is indeed a checkbox, you should check its `checked` property to see if it's checked or not.
-
-Here's a corrected version of your script assuming 'payment_mode' is a checkbox:
-
-```html
-<script>
-  const toggleInputCheckbox = document.querySelector('[name="payment_mode"]');
-  const hiddenFields = document.querySelectorAll('.hiddenField');
-
-  toggleInputCheckbox.addEventListener('change', function() {
-    hiddenFields.forEach(field => {
-      if (this.checked && this.value === 'cash') {
-        field.style.display = 'none'; // Hide the field
-      } else {
-        field.style.display = 'block'; // Show the field
-      }
-    });
-  });
-
-  document.getElementById('myForm').addEventListener('submit', function(event) {
-    if (!toggleInputCheckbox.checked || toggleInputCheckbox.value !== 'online') {
-      hiddenFields.forEach(field => {
-        const input = field.querySelector('input');
-        input.disabled = true; // Disable the input field
-      });
-    }
-    
-    // Prevent the form from submitting for demonstration purposes
-    event.preventDefault();
-  });
-</script>
+```bash
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo systemctl restart apache2
 ```
 
-Make sure to replace `'payment_mode_checkbox'` with the correct id of your checkbox if it's not 'payment_mode_checkbox'. Additionally, ensure that your checkbox has the attribute `name="payment_mode"` if you're using `querySelector('[name="payment_mode"]')`.
+2. **Create a Virtual Host configuration**: Create a new configuration file (e.g., `yourdomain.conf`) in the Apache `sites-available` directory. Replace `yourdomain.com` with your actual domain name.
+
+```apache
+<VirtualHost *:80>
+    ServerName yourdomain.com
+    ServerAlias www.yourdomain.com
+
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:8181/
+    ProxyPassReverse / http://localhost:8181/
+</VirtualHost>
+```
+
+3. **Enable the Virtual Host**: Once you've created the configuration file, enable the virtual host by creating a symbolic link to the `sites-enabled` directory:
+
+```bash
+sudo ln -s /etc/apache2/sites-available/yourdomain.conf /etc/apache2/sites-enabled/
+```
+
+4. **Restart Apache**: Restart Apache to apply the changes:
+
+```bash
+sudo systemctl restart apache2
+```
+
+5. **Update Security Groups**: Ensure that your AWS Security Group associated with your EC2 instance allows inbound traffic on port 80.
+
+6. **Test**: Finally, test your site to ensure it's accessible without specifying the port in the URL.
+
+By following these steps, your Apache server will listen on the default HTTP port (port 80) and forward requests to your Node.js application running on port 8181.
