@@ -1,25 +1,6 @@
-Certainly! Here's a more detailed version of the feedback for the HR:
-
----
-
-**Candidate Feedback:**
-
-**Interviewer:** [Your Name]
-
-**Position Interviewed For:** [Position Title]
-
-**Overall Assessment:** The candidate performed well during the interview. They answered all questions correctly to the best of my knowledge and from my perspective, they are a suitable choice for the position.
-
-**Strengths Displayed:**
-- **Knowledge:** Demonstrated a strong understanding of [relevant topics, technologies, etc.].
-- **Communication Skills:** Articulated responses clearly and effectively.
-- **Problem-Solving:** Provided thoughtful and well-reasoned solutions to the scenarios presented.
-
-**Areas of Note:**
-- [Any specific standout points or notable aspects of the interview that you feel are important to highlight.]
-
-**Recommendation:** I recommend moving forward with this candidate for the next steps in the hiring process. I believe they have the potential to excel in the role and contribute positively to the team.
-
----
-
-Feel free to customize this feedback with specific details from the interview that stood out to you.
+[22/02, 12:39 pm] AJ(SFT): const OTP_TEMPLATE_ID = '615d88970ce4f35f0b69cdb3';
+[22/02, 12:39 pm] AJ(SFT): let send_OTP_url = `https://api.msg91.com/api/v5/otp?invisible=1&otp=${otp}&authkey=${keys.MSG91_AUTH_KEY}&mobile=+91${phone_number}&template_id=${OTP_TEMPLATE_ID}&otp_expiry=15`;
+[27/02, 1:15 pm] AJ(SFT): let send_OTP_url = `https://api.msg91.com/api/v5/otp?invisible=1&otp=${otp}&authkey=${keys.MSG91_AUTH_KEY}&mobile=+91${phone_number}&template_id=${OTP_TEMPLATE_ID}&otp_expiry=15`;
+[27/02, 1:16 pm] AJ(SFT): var MSG91_AUTH_KEY = '346781AkmXZ99vlfM5faa2b7cP1';
+var MSG91_SENDER_ID = 'tipplr';
+[27/02, 1:16 pm] AJ(SFT): const OTP_TEMPLATE_ID = '615d88970ce4f35f0b69cdb3';
