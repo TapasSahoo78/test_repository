@@ -11,3 +11,10 @@ if ($uri !== '/' && file_exists(__DIR__.'/public'.$uri)) {
 }
 
 require_once __DIR__.'/public/index.php';
+
+
+
+| Domain: tikandtake.com
+| cPanel IP: https://13.200.168.123:2083
+| UserName: tikandtake
+| PassWord: cUd9udEf=o(&
