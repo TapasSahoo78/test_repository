@@ -1,18 +1,20 @@
-$list = SELF_MODEL::with(['user' => function ($q) {
-    $q->select('id', 'user_type');
-}])->where('status', $request['status'])
-  ->whereDate('booking_date', $request['booking_date'])
-  ->where(function ($query) {
-      $query->whereNull('bulk_driver')
-            ->orWhereHas('user', function ($q) {
-                $q->where('user_type', 'online');
+public function bulkDriver()
+ {
+   return $this->hasMany(BulkDriverBooking::class, 'booking_id');
+ }
+
+$query = SELF_MODEL::with([
+            'user' => function ($q) {
+                $q->select('id', 'user_type');
+            },
+            'bulkDriver' => function ($q) {
+                $q->select('id', 'driver_id', 'booking_id', 'amount', 'status');
+            }
+]);
+if (isset($request['booking_type']) && $request['booking_type'] == 2) {
+            $query->whereNotNull('bulk_driver');
+            $query->whereHas('bulkDriver', function ($q) {
+                $q->where('driver_id', '!=', Auth::id());
             });
-  })
-  ->when($request['bulk_driver'], function ($query) use ($request) {
-      // If bulk_driver is provided, check if it exists in the relationship
-      return $query->whereHas('bulkDriver', function ($q) use ($request) {
-          $q->where('id', $request['bulk_driver']);
-      });
-  })
-  ->latest()
-  ->paginate(10);
+ }
+$query = $query->latest()->paginate(10);
