@@ -1,36 +1,60 @@
-If Razorpay requires the amount to be passed in integer paise and has a minimum value of 100 paise (₹1), we need to ensure that the amount passed to Razorpay meets these requirements. Here's how you can adjust the code to handle this:
+<form action="{!! route('user.pay-payment') !!}" method="POST">
+                            @csrf
+                            <input type="text" class="float-number form-control" id="razorpayAmount" name="amount">
+                            <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_l5IvNZuMCyyln6"
+                                data-buttontext="Add Money" data-name="Driver4Wheels" data-description="Payment" data-prefill.name="name"
+                                data-prefill.email="email" data-prefill.contact="9898989898" data-theme.color="#fff"></script>
+                        </form>
 
-```javascript
-document.addEventListener('DOMContentLoaded', function () {
-    const amountInput = document.getElementById('razorpayAmount');
-    const razorpayScript = document.querySelector('script[data-key="rzp_test_l5IvNZuMCyyln6"]');
 
-    amountInput.addEventListener('input', function () {
-        const amountValue = parseFloat(amountInput.value.trim());
-        
-        // Check if the amount is a valid positive number
-        if (!isNaN(amountValue) && amountValue >= 1) {
-            // Convert to integer paise
-            const amountInPaisa = Math.round(amountValue * 100);
-            
-            // Check if the amount meets the minimum value requirement
-            if (amountInPaisa >= 100) {
-                razorpayScript.setAttribute('data-amount', amountInPaisa);
-            } else {
-                console.error('Amount must be at least 1 INR (100 paise).');
+
+ public function payment(Request $request)
+    {
+        $input = $request->all();
+
+        $api = new Api("rzp_test_l5IvNZuMCyyln6", "JOGyC0ctO2xLWoMDFEyVeB6h");
+        $orderData = [
+            'receipt' => 'VS' . time(),
+            'amount' => 500 * 100,
+            'currency' => 'INR',
+        ];
+        $razorpayOrder = $api->order->create($orderData);
+        // dd($order);
+        Transaction::create([
+            "user_id" => Auth::id(),
+            "razorpayOrderId" => $razorpayOrder?->id,
+            "paidAmount" => $razorpayOrder?->amount / 100,
+            "remark" => "Wallet Recharge",
+            // "paymentDate" => ,
+            "paymentStatus" => "Pending",
+        ]);
+        $payment = $api->payment->fetch($input['razorpay_payment_id']);
+
+        try {
+            $updateAmount = Transaction::where('razorpayOrderId', $razorpayOrder?->id)->latest()->first();
+            if ($updateAmount) {
+                Transaction::where('razorpayOrderId', $razorpayOrder?->id)->update([
+                    "payment_id" => $payment?->id,
+                    "paymentStatus" => "Paid"
+                ]);
+
+                $userWalletMoney = UserWallet::firstOrNew(['user_id' => Auth::id()]);
+                $userWalletMoney->amount += $updateAmount->paidAmount;
+                $userWalletMoney->save();
+
+                WalletHasLedger::create([
+                    'user_wallet_id' => $userWalletMoney->id,
+                    'razor_payment_id' => $request->razorpay_payment_id,
+                    'amount' => $updateAmount?->paidAmount,
+                    'mode' => "Credited",
+                    'currentBalance' => $userWalletMoney?->amount,
+                    'remark' => 'Recharge of ' . ($updateAmount?->paidAmount) . ' is successful',
+                ]);
+                return redirect()->route('user.wallet');
+                // return $this->responseJson(true, 200, 'Payment Successful!', route('user.wallet'));
             }
-        } else {
-            console.error('Invalid amount entered.');
+        } catch (\Exception $e) {
+            logger($e->getMessage() . ' -- ' . $e->getLine() . ' -- ' . $e->getFile());
+            return $this->apiResponseJson(false, 500, (onProduction()) ? config('message.MSG_ERROR_TRY_AGAIN') : $e->getMessage(), (object) []);
         }
-    });
-});
-```
-
-In this updated code:
-
-- We first check if the entered amount is a valid positive number greater than or equal to 1.
-- If the amount is valid, we convert it to integer paise and check if it meets the minimum value requirement of 100 paise (₹1).
-- If both conditions are met, we set the `data-amount` attribute of the Razorpay script with the amount in paise.
-- Otherwise, we log an error message to the console indicating the issue with the entered amount.
-
-Make sure to test this code to ensure that it correctly handles the amount validation and passes the valid amount to the Razorpay script without triggering the "Invalid amount" error.
+    }
