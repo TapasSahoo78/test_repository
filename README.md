@@ -1,44 +1,33 @@
-To make the recharge amount dynamic in your modal, you can update the `data-amount` attribute of the Razorpay script tag dynamically based on the amount entered by the user in the input field. Here's how you can achieve this:
+The "Invalid amount" error typically occurs when there is an issue with the format or value of the amount being passed to the Razorpay API. Here's how you can troubleshoot and fix the issue:
 
-```html
-<button data-bs-toggle="modal" data-bs-target="#addMoneyModal">Add Money</button>
+1. **Ensure Correct Amount Format**: Make sure that the amount passed to the Razorpay API is in the correct format. Razorpay expects the amount to be in paisa (the smallest currency unit), so multiply the entered amount by 100 to convert it to paisa.
 
-<!-- Wallet Recharge Modal -->
-<div class="modal fade popup" id="addMoneyModal" tabindex="-1" aria-labelledby="addMoneyModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body popup">
-                <form action="{!! route('user.pay-payment') !!}" method="POST">
-                    @csrf
-                    <input type="text" class="float-number form-control" id="razorpayAmount" name="amount">
-                    <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_l5IvNZuMCyyln6"
-                        data-amount="" data-buttontext="Add Money" data-name="Driver4Wheels" data-description="Payment"
-                        data-prefill.name="name" data-prefill.email="email" data-prefill.contact="9898989898" data-theme.color="#fff">
-                    </script>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+2. **Check Input Field**: Ensure that the input field (`razorpayAmount`) is correctly capturing the recharge amount entered by the user. You can log the value of `amountInput.value` to the console to verify its value.
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const amountInput = document.getElementById('razorpayAmount');
-        const razorpayScript = document.querySelector('script[data-key="rzp_test_l5IvNZuMCyyln6"]');
+3. **Handle Empty or Non-Numeric Values**: Handle cases where the entered amount is empty or non-numeric to prevent errors. You can add validation logic to ensure that the entered value is a valid number before attempting to calculate the amount in paisa.
 
-        amountInput.addEventListener('input', function () {
-            const amount = parseFloat(amountInput.value || 0) * 100; // Convert to paisa
-            razorpayScript.setAttribute('data-amount', amount);
-        });
+4. **Verify Razorpay API Key**: Double-check that you are using the correct Razorpay API key (`rzp_test_l5IvNZuMCyyln6`) and that it is configured properly in your application.
+
+5. **Debugging**: Use browser developer tools to inspect the network requests and responses when submitting the payment form. This can help identify any issues with the data being sent to Razorpay.
+
+Here's an updated version of the JavaScript code with added error handling and logging to help diagnose the issue:
+
+```javascript
+document.addEventListener('DOMContentLoaded', function () {
+    const amountInput = document.getElementById('razorpayAmount');
+    const razorpayScript = document.querySelector('script[data-key="rzp_test_l5IvNZuMCyyln6"]');
+
+    amountInput.addEventListener('input', function () {
+        const amountValue = parseFloat(amountInput.value.trim());
+        
+        if (!isNaN(amountValue) && amountValue > 0) {
+            const amountInPaisa = Math.round(amountValue * 100); // Convert to paisa
+            razorpayScript.setAttribute('data-amount', amountInPaisa);
+        } else {
+            console.error('Invalid amount entered.');
+        }
     });
-</script>
+});
 ```
 
-In this code:
-- An input field with the id `razorpayAmount` is added to the modal to allow the user to enter the recharge amount.
-- The script tag for Razorpay is included with an empty `data-amount` attribute. This attribute will be dynamically updated.
-- A JavaScript event listener is added to the `razorpayAmount` input field to listen for changes in the entered amount.
-- When the amount is changed, the event listener calculates the amount in paisa (multiplied by 100) and updates the `data-amount` attribute of the Razorpay script tag accordingly. This ensures that the recharge amount dynamically reflects in the Razorpay payment form.
+With this code, you'll get more insights into the issue, and it will help you pinpoint where the problem lies. If you continue to encounter the "Invalid amount" error, consider reviewing the Razorpay documentation or reaching out to their support for further assistance.
