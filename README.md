@@ -47,3 +47,59 @@ In this code:
 - Finally, we trigger the events initially to ensure that the `calculatePrice` function is invoked when the page loads.
 
 With these modifications, the fare calculation should update correctly when a location is selected using the mouse from the autocomplete dropdown.
+
+
+
+
+
+
+
+
+
+
+
+
+
+If you want to programmatically trigger events on the input fields, you can use the `dispatchEvent` method. This allows you to simulate user interactions and trigger the `calculatePrice` function accordingly. Here's how you can do it:
+
+```javascript
+function triggerEvents(input) {
+    const eventTypes = ['change', 'input', 'keyup', 'mouseup', 'place_changed', 'mousedown', 'focus', 'blur'];
+    eventTypes.forEach(eventType => {
+        input.dispatchEvent(new Event(eventType));
+    });
+}
+
+function attachInputListeners(pickupInput, dropInput) {
+    // Pickup input events
+    pickupInput.addEventListener('change', calculatePrice);
+    pickupInput.addEventListener('input', calculatePrice);
+    pickupInput.addEventListener('keyup', calculatePrice);
+    pickupInput.addEventListener('mouseup', calculatePrice);
+    pickupInput.addEventListener('place_changed', calculatePrice); // Add place_changed event
+    pickupInput.addEventListener('mousedown', calculatePrice); // Add mousedown event
+    pickupInput.addEventListener('focus', calculatePrice); // Add focus event
+    pickupInput.addEventListener('blur', calculatePrice); // Add blur event
+
+    // Drop input events
+    dropInput.addEventListener('change', calculatePrice);
+    dropInput.addEventListener('input', calculatePrice);
+    dropInput.addEventListener('keyup', calculatePrice);
+    dropInput.addEventListener('mouseup', calculatePrice);
+    dropInput.addEventListener('place_changed', calculatePrice); // Add place_changed event
+    dropInput.addEventListener('mousedown', calculatePrice); // Add mousedown event
+    dropInput.addEventListener('focus', calculatePrice); // Add focus event
+    dropInput.addEventListener('blur', calculatePrice); // Add blur event
+
+    // Trigger events initially
+    triggerEvents(pickupInput);
+    triggerEvents(dropInput);
+}
+```
+
+In this code:
+- The `triggerEvents` function takes an input field as an argument and dispatches various events on it.
+- The `attachInputListeners` function adds event listeners to both pickup and drop input fields.
+- After adding event listeners, it triggers the events programmatically on both input fields to ensure that the `calculatePrice` function is called initially.
+
+By triggering the events programmatically, you ensure that the `calculatePrice` function is invoked as if the user interacted with the input fields, ensuring consistent behavior and accurate fare calculation.
