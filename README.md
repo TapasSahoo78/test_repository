@@ -1,3 +1,1 @@
-<h5>{{ $history?->mode == 'credited' ? '+' : '-' }} {{ $history?->amount }}</h5>
-
-credited green color with amount and red debited
+<h5 style="color: {{ $history->mode == 'credited' ? 'green' : 'red' }}">{{ $history->mode == 'credited' ? '+' : '-' }} {{ $history->amount }}</h5>
