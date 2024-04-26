@@ -1,9 +1,2 @@
-function calculatePrice() {
-    const tab = this.closest('.tab-pane');
-    const pickupInput = tab.querySelector('.pickupLocation_loc');
-    const dropInput = tab.querySelector('.dropLocation_loc');
-    console.log('Drop Input:', dropInput); // Debug statement to check dropInput
-    console.log('Drop Value:', dropInput.value); // Debug statement to check dropInput value
-
-    // Rest of the code...
-}
+Drop Input: <input type=​"text" class=​"form-control dropLocation-1 dropLocation_loc pac-target-input" id=​"dropLocation-1" placeholder=​"Type Your Destination Location" name=​"drop_location" autocomplete=​"off">​
+ Drop Value: dum dum
