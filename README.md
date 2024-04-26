@@ -1,12 +1,27 @@
-To conditionally apply green or red color based on the `mode` attribute in your Laravel blade template, you can use inline conditional statements along with inline styles or CSS classes. Here's how you can achieve this:
+<button data-bs-toggle="modal" data-bs-target="#addMoneyModal">Add Money</button>
 
-```html
-<h5 style="color: {{ $history->mode == 'credited' ? 'green' : 'red' }}">{{ $history->mode == 'credited' ? '+' : '-' }} {{ $history->amount }}</h5>
-```
+    <!--Wallet Recharge Modal -->
+    <div class="modal fade popup" id="addMoneyModal" tabindex="-1" aria-labelledby="addMoneyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body popup">
 
-In this code:
-- The `style` attribute is used to apply inline CSS to the `<h5>` element.
-- The inline conditional statement `{{ $history->mode == 'credited' ? 'green' : 'red' }}` determines the color based on the value of the `mode` attribute. If `mode` is `'credited'`, it applies the color green; otherwise, it applies the color red.
-- Inside the `<h5>` element, another inline conditional statement `{{ $history->mode == 'credited' ? '+' : '-' }}` is used to display either `+` or `-` based on the value of the `mode` attribute.
+                    <a href="javascript:void(0)">
+                        <form action="{!! route('user.pay-payment') !!}" method="POST">
+                            @csrf
+                            <input type="text" class="float-number form-control" id="razorpay">
+                            <script src="https://checkout.razorpay.com/v1/checkout.js" data-key="rzp_test_l5IvNZuMCyyln6"
+                                data-amount="{{ 500 * 100 }}" data-buttontext="Add Money" data-name="Driver4Wheels" data-description="Payment"
+                                data-prefill.name="name" data-prefill.email="email" data-prefill.contact="9898989898" data-theme.color="#fff">
+                            </script>
+                        </form>
+                    </a>
 
-This will render the `<h5>` element with green color and a `+` sign if the `mode` attribute is `'credited'`, and with red color and a `-` sign if the `mode` attribute is not `'credited'`. Adjust the styles or classes as needed to match your application's design requirements.
+                </div>
+
+            </div>
+        </div>
+    </div>
