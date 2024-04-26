@@ -1,16 +1,4 @@
-The "Invalid amount" error typically occurs when there is an issue with the format or value of the amount being passed to the Razorpay API. Here's how you can troubleshoot and fix the issue:
-
-1. **Ensure Correct Amount Format**: Make sure that the amount passed to the Razorpay API is in the correct format. Razorpay expects the amount to be in paisa (the smallest currency unit), so multiply the entered amount by 100 to convert it to paisa.
-
-2. **Check Input Field**: Ensure that the input field (`razorpayAmount`) is correctly capturing the recharge amount entered by the user. You can log the value of `amountInput.value` to the console to verify its value.
-
-3. **Handle Empty or Non-Numeric Values**: Handle cases where the entered amount is empty or non-numeric to prevent errors. You can add validation logic to ensure that the entered value is a valid number before attempting to calculate the amount in paisa.
-
-4. **Verify Razorpay API Key**: Double-check that you are using the correct Razorpay API key (`rzp_test_l5IvNZuMCyyln6`) and that it is configured properly in your application.
-
-5. **Debugging**: Use browser developer tools to inspect the network requests and responses when submitting the payment form. This can help identify any issues with the data being sent to Razorpay.
-
-Here's an updated version of the JavaScript code with added error handling and logging to help diagnose the issue:
+If Razorpay requires the amount to be passed in integer paise and has a minimum value of 100 paise (₹1), we need to ensure that the amount passed to Razorpay meets these requirements. Here's how you can adjust the code to handle this:
 
 ```javascript
 document.addEventListener('DOMContentLoaded', function () {
@@ -20,9 +8,17 @@ document.addEventListener('DOMContentLoaded', function () {
     amountInput.addEventListener('input', function () {
         const amountValue = parseFloat(amountInput.value.trim());
         
-        if (!isNaN(amountValue) && amountValue > 0) {
-            const amountInPaisa = Math.round(amountValue * 100); // Convert to paisa
-            razorpayScript.setAttribute('data-amount', amountInPaisa);
+        // Check if the amount is a valid positive number
+        if (!isNaN(amountValue) && amountValue >= 1) {
+            // Convert to integer paise
+            const amountInPaisa = Math.round(amountValue * 100);
+            
+            // Check if the amount meets the minimum value requirement
+            if (amountInPaisa >= 100) {
+                razorpayScript.setAttribute('data-amount', amountInPaisa);
+            } else {
+                console.error('Amount must be at least 1 INR (100 paise).');
+            }
         } else {
             console.error('Invalid amount entered.');
         }
@@ -30,4 +26,11 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 ```
 
-With this code, you'll get more insights into the issue, and it will help you pinpoint where the problem lies. If you continue to encounter the "Invalid amount" error, consider reviewing the Razorpay documentation or reaching out to their support for further assistance.
+In this updated code:
+
+- We first check if the entered amount is a valid positive number greater than or equal to 1.
+- If the amount is valid, we convert it to integer paise and check if it meets the minimum value requirement of 100 paise (₹1).
+- If both conditions are met, we set the `data-amount` attribute of the Razorpay script with the amount in paise.
+- Otherwise, we log an error message to the console indicating the issue with the entered amount.
+
+Make sure to test this code to ensure that it correctly handles the amount validation and passes the valid amount to the Razorpay script without triggering the "Invalid amount" error.
