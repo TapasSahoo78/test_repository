@@ -1,13 +1,8 @@
-Certainly! In addition to the events mentioned in the previous code snippet, you can also consider adding the following events to enhance user interaction and ensure that the fare calculation updates correctly:
+If the events are not working for mouse click to select an address from the autocomplete dropdown, you may need to handle the autocomplete component's event separately. 
 
-1. **Mouse Events for Dropdown Selection**:
-   - `mousedown`: This event occurs when the mouse button is pressed down over the element. It can be useful for triggering the fare calculation when the user clicks to select a location from the dropdown.
+Google Places Autocomplete provides its own event called `place_changed`, which fires when a place is selected from the autocomplete dropdown. You can listen for this event on the autocomplete instance associated with the input field.
 
-2. **Focus Events**:
-   - `focus`: This event occurs when an element receives focus, typically when it is clicked or tabbed into. You can use this event to trigger the fare calculation when the input field receives focus.
-   - `blur`: This event occurs when an element loses focus, typically when the user clicks outside the input field or tabs away from it. You can use this event to update the fare calculation when the input field loses focus.
-
-Here's an updated version of the `attachInputListeners` function with these additional events included:
+Here's how you can modify the code to handle the `place_changed` event for both pickup and drop input fields:
 
 ```javascript
 function attachInputListeners(pickupInput, dropInput) {
@@ -16,21 +11,39 @@ function attachInputListeners(pickupInput, dropInput) {
     pickupInput.addEventListener('input', calculatePrice);
     pickupInput.addEventListener('keyup', calculatePrice);
     pickupInput.addEventListener('mouseup', calculatePrice);
-    pickupInput.addEventListener('place_changed', calculatePrice); // Add place_changed event
-    pickupInput.addEventListener('mousedown', calculatePrice); // Add mousedown event
-    pickupInput.addEventListener('focus', calculatePrice); // Add focus event
-    pickupInput.addEventListener('blur', calculatePrice); // Add blur event
+    pickupInput.addEventListener('focus', calculatePrice);
+    pickupInput.addEventListener('blur', calculatePrice);
 
     // Drop input events
     dropInput.addEventListener('change', calculatePrice);
     dropInput.addEventListener('input', calculatePrice);
     dropInput.addEventListener('keyup', calculatePrice);
     dropInput.addEventListener('mouseup', calculatePrice);
-    dropInput.addEventListener('place_changed', calculatePrice); // Add place_changed event
-    dropInput.addEventListener('mousedown', calculatePrice); // Add mousedown event
-    dropInput.addEventListener('focus', calculatePrice); // Add focus event
-    dropInput.addEventListener('blur', calculatePrice); // Add blur event
+    dropInput.addEventListener('focus', calculatePrice);
+    dropInput.addEventListener('blur', calculatePrice);
+
+    // Listen for place_changed event on pickup input autocomplete
+    const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput);
+    pickupAutocomplete.addListener('place_changed', () => {
+        calculatePrice();
+    });
+
+    // Listen for place_changed event on drop input autocomplete
+    const dropAutocomplete = new google.maps.places.Autocomplete(dropInput);
+    dropAutocomplete.addListener('place_changed', () => {
+        calculatePrice();
+    });
+
+    // Trigger events initially
+    triggerEvents(pickupInput);
+    triggerEvents(dropInput);
 }
 ```
 
-By including these additional events, you ensure that the fare calculation updates correctly in various scenarios, such as dropdown selection, focus changes, and mouse interactions, providing a smoother and more intuitive user experience.
+In this code:
+- We remove the `mousedown` event listener, as it may not be necessary.
+- We add event listeners for `focus` and `blur` events to handle when the input field gains or loses focus.
+- We add separate event listeners for the `place_changed` event on the autocomplete instances associated with the pickup and drop input fields. This ensures that the `calculatePrice` function is called when a place is selected from the autocomplete dropdown.
+- Finally, we trigger the events initially to ensure that the `calculatePrice` function is invoked when the page loads.
+
+With these modifications, the fare calculation should update correctly when a location is selected using the mouse from the autocomplete dropdown.
