@@ -1,4 +1,4 @@
-To close the section containing the popover content along with the table when switching tabs, you can simply hide the parent element. Here's how you can modify the code to achieve that:
+If you want to hide the popover title along with the popover content and table, you can simply adjust the code to hide the entire popover element. Here's how you can modify the code to achieve that:
 
 ```javascript
 tabs.forEach(tab => {
@@ -13,11 +13,13 @@ tabs.forEach(tab => {
         const fareView = tab.querySelector('.fare');
         fareView.innerText = '';
 
-        // Hide the section containing the popover content and table
-        const popoverContentSection = tab.querySelector('[data-name="popover-content"]').closest('div');
-        popoverContentSection.style.display = 'none';
+        // Hide the popover element
+        const popover = tab.querySelector('[data-bs-toggle="popover"]');
+        if (popover) {
+            popover.style.display = 'none';
+        }
     }
 });
 ```
 
-This code will hide the parent element of the popover content section when switching tabs, effectively closing the section along with the popover content and table. Make sure to replace the existing code with this updated version and test it to ensure it behaves as expected.
+This code will hide the popover element along with its title when switching tabs. Make sure to replace the existing code with this updated version and test it to ensure it behaves as expected.
