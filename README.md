@@ -1,3 +1,19 @@
+Relationship laravel -
+public function bulkBookingDriver()
+    {
+        return $this->hasMany(BulkDriverBooking::class, 'booking_id');
+    }
+Query -
+$list = SELF_MODEL::with([
+                'user' => function ($q) {
+                    $q->select('id', 'user_type');
+                },
+                'bulkBookingDriver' => function ($q) {
+                    $q->where(['driver_id' => Auth::id()]);
+                }
+            ])->where('status', $request['status'])->whereNotNull('bulk_driver')->latest()->get();
+
+Json Response -
 "data": [
         {
             "id": 2,
@@ -35,3 +51,6 @@
             "bulk_booking_driver": []
         }
     ]
+
+This relation using bulkBookingDriver booking_id but check Auth::id
+which booking bulk_booking_driver is null need to shown in this list.
