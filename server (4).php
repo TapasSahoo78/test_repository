@@ -76,3 +76,30 @@ class WithdrawController extends Controller
         }
     }
 }
+
+
+
+
+function sendNotification($deviceToken, $title, $body)
+{
+    $apiKey = env('FIREBASE_API_KEY');
+
+    $response = Http::withHeaders([
+        'Authorization' => 'key=' . $apiKey,
+        'Content-Type' => 'application/json',
+    ])->post('https://fcm.googleapis.com/fcm/send', [
+                'to' => $deviceToken,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+            ]);
+
+    // return $response->json();
+
+    // $deviceToken = 'YOUR_DEVICE_TOKEN';
+    // $title = 'New Notification';
+    // $body = 'This is a test notification from Laravel!';
+
+    // $response = sendNotification($deviceToken, $title, $body);
+}
