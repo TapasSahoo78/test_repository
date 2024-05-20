@@ -170,3 +170,159 @@ Create an HTML form to send messages and a container to display messages.
 Replace `"user_id"` and `"admin_id"` with the actual IDs of the user and admin.
 
 With this setup, users can send messages to admins, and admins can reply back to users. The messages are stored in Firestore and retrieved using AJAX requests. Adjust the code according to your specific requirements and application architecture.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Route::controller(WalletController::class)->group(function () {
+        Route::group(['prefix' => 'wallet', 'as' => 'wallet.'], function () {
+            Route::post('/recharge', 'rechargeWallet')->name('recharge');
+            Route::post('/verify', 'paymentVerify')->name('verify');
+            Route::get('/history', 'walletLedger')->name('history');
+            Route::post('/refund', 'initiateRefund')->name('refund');
+        });
+    });
+
+
+
+
+
+
+public function walletLedger()
+    {
+        $wallet = (new WalletService)->getWalletHistory();
+        if (isset($wallet) && !empty($wallet)) {
+            return response()->json([
+                'status'        =>  true,
+                'response_code' =>  200,
+                'message'       =>  config('message.MSG_RECORD_FETCHED_SUCCESS'),
+                'wallet_total' => $wallet->amount ?? 0.00,
+                'data' =>  $wallet->getWalletHistory()->latest()->paginate(10)
+            ], 200);
+        } else {
+            return $this->apiResponseJson(true, 200, config('message.MSG_RECORD_FETCHED_FAILED'), []);
+        }
+    }
+    public function rechargeWallet(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "amount" => "required|numeric"
+        ]);
+        if ($validator->fails()) {
+            return $this->apiResponseJson(false, 422, $validator->errors()->first(), (object) []);
+        }
+        $amount = $request->amount * 100;
+        $receiptId = uniqid('recharge_');
+
+        $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+
+        $orderData = [
+            'amount' => $amount,
+            'currency' => 'INR',
+            'receipt' => $receiptId,
+            'payment_capture' => 1
+            // 'description' => 'Wallet Recharge',
+        ];
+
+        try {
+            $razorpayOrder = $api->order->create($orderData);
+            Transaction::create([
+                "user_id" => Auth::id(),
+                "razorpayOrderId" => $razorpayOrder?->id,
+                "paidAmount" => $razorpayOrder?->amount / 100,
+                "remark" => "Wallet Recharge",
+                // "paymentDate" => ,
+                "paymentStatus" => "Pending",
+            ]);
+            // if ($transactionCreated) {
+            //     $transactionLogCreated = [];
+            // }
+            return $this->apiResponseJson(true, 200, 'Intent created successfully in Razorpay Server', (object)[
+                "amount" => $razorpayOrder?->amount,
+                "orderId" => $razorpayOrder?->id
+            ]);
+        } catch (\Exception $e) {
+            logger($e->getMessage() . ' -- ' . $e->getLine() . ' -- ' . $e->getFile());
+            return $this->apiResponseJson(false, 500, (onProduction()) ?  config('message.MSG_ERROR_TRY_AGAIN') : $e->getMessage(), (object) []);
+        }
+    }
+
+    public function paymentVerify(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "razorpay_order_id" => "required",
+            "razorpay_payment_id" => "required"
+        ]);
+        if ($validator->fails()) {
+            return $this->apiResponseJson(false, 422, $validator->errors()->first(), (object) []);
+        }
+
+        try {
+            $updateAmount = Transaction::where('razorpayOrderId', $request->razorpay_order_id)->latest()->first();
+            if ($updateAmount) {
+                Transaction::where('razorpayOrderId', $request->razorpay_order_id)->update([
+                    "payment_id" => $request->razorpay_payment_id,
+                    "paymentStatus" => "Paid"
+                ]);
+
+                $userWalletMoney = UserWallet::firstOrNew(['user_id' => Auth::id()]);
+                $userWalletMoney->amount += $updateAmount->paidAmount;
+                $userWalletMoney->save();
+
+                WalletHasLedger::create([
+                    'user_wallet_id' => $userWalletMoney->id,
+                    'razor_payment_id' => $request->razorpay_payment_id,
+                    'amount' => $updateAmount?->paidAmount,
+                    'mode' => "Credited",
+                    'currentBalance' => $userWalletMoney?->amount,
+                    'remark' => 'Recharge of ' . ($updateAmount?->paidAmount) . ' is successful',
+                ]);
+                return $this->apiResponseJson(true, 200, 'Payment Successful!', (object)[]);
+            }
+        } catch (\Exception $e) {
+            logger($e->getMessage() . ' -- ' . $e->getLine() . ' -- ' . $e->getFile());
+            return $this->apiResponseJson(false, 500, (onProduction()) ?  config('message.MSG_ERROR_TRY_AGAIN') : $e->getMessage(), (object) []);
+        }
+    }
+
+
+
+
+
+RAZORPAY_KEY_ID=rzp_test_l5IvNZuMCyyln6
+RAZORPAY_KEY_SECRET=JOGyC0ctO2xLWoMDFEyVeB6h
+
+
+
+
+
+
+
+FIREBASE_API_KEY=AAAAuLwTeqs:APA91bGLxAWBtwlJKLJLnqqfcg1pHPvaLG-yVrpGPUeyl5IPRmy9iMOGwVyCvl2ElJrIkLmaEIpmhOA_XTBwORtOx34CY5BoVmuYqrf0CqRZHseSAgannjJF5rYX2HnQ5J__aoR-dwe2
+
+
+
+
+
+
+
+
+
+
+
