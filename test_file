@@ -59,3 +59,39 @@ RAZORPAY_KEY_SECRET=JOGyC0ctO2xLWoMDFEyVeB6h
                                     <button type="button" class="btn btn-danger remove-bus-stop">-</button>
                                 </div>
                             </div>
+
+
+
+
+
+
+
+
+
+
+
+public function store(Request $request)
+{
+    $request->validate([
+        'location.*' => 'required|string|max:255',
+        'latitude.*' => 'required|numeric|between:-90,90',
+        'longitude.*' => 'required|numeric|between:-180,180',
+        'time.*' => 'required|date_format:H:i',
+    ], [
+        // Custom error messages (optional)
+        'location.*.required' => 'The location field is required.',
+        'latitude.*.required' => 'The latitude field is required.',
+        'latitude.*.numeric' => 'The latitude must be a number.',
+        'latitude.*.between' => 'The latitude must be between -90 and 90 degrees.',
+        'longitude.*.required' => 'The longitude field is required.',
+        'longitude.*.numeric' => 'The longitude must be a number.',
+        'longitude.*.between' => 'The longitude must be between -180 and 180 degrees.',
+        'time.*.required' => 'The time field is required.',
+        'time.*.date_format' => 'The time must be in the format HH:MM.',
+    ]);
+
+    // If validation passes, proceed with storing the data
+    // Your logic to store the data goes here
+
+    return redirect()->back()->with('success', 'Bus stops added successfully!');
+}
