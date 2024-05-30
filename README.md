@@ -322,7 +322,7 @@ FIREBASE_API_KEY=AAAAuLwTeqs:APA91bGLxAWBtwlJKLJLnqqfcg1pHPvaLG-yVrpGPUeyl5IPRmy
 
 
 
-
+Transaction ID: 275560372515 is insufficient for certification, as it's just MOTO transaction. Please arrange 3Ds successful and failed transactions using the cards mentioned in the integration kit.
 
 
 
