@@ -351,5 +351,66 @@ if (json_decode($response)->Transaction->ResponseCode == 0) {
                 //         'json_response' => json_decode($response) ?? null,
                 //     ]);
                 // }
-                return $this->responseJson(true, 200, 'Make Payment Successfully', json_decode($response));
+                return $this->responseJson(true, 200, 'Make Payment Successfully', json_decode($response))
 
+
+
+
+
+
+
+
+
+
+
+
+// Turn on error reporting
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Decode JSON response
+$responseData = json_decode($response);
+
+if ($responseData === null) {
+    return $this->responseJson(false, 400, 'Invalid JSON response');
+}
+
+// Check the response code
+if ($responseData->Transaction->ResponseCode == 0) {
+    // Ensure $request->TransactionID exists
+    if (isset($request->TransactionID)) {
+        $responseData->TransactionID = $request->TransactionID;
+    } else {
+        return $this->responseJson(false, 400, 'TransactionID not found in request');
+    }
+
+    // Uncomment and modify the following code as needed for your logic
+    /*
+    $isIncidentCreated = Incident::where('id', $orderId)->first();
+    if ($isIncidentCreated) {
+        $parts = explode('_', $orderId);
+        $authIdPart = $parts[0]; // Get the first part
+
+        // Create transaction
+        $isTransactionCreated = $isIncidentCreated->transaction()->create([
+            'user_id' => $authIdPart,
+            'amount' => $responseData->Transaction->amount->value ?? $responseData->Transaction->amount,
+            'currency' => getSiteSetting('currency_code') ?? 'AED',
+            'json_response' => $responseData,
+        ]);
+
+        if (!$isTransactionCreated) {
+            return $this->responseJson(false, 500, 'Failed to create transaction');
+        }
+    } else {
+        return $this->responseJson(false, 404, 'Incident not found');
+    }
+    */
+
+    // Return success response
+    return $this->responseJson(true, 200, 'Make Payment Successfully', $responseData);
+} else {
+    // Handle non-successful response code
+    return $this->responseJson(false, 400, 'Payment failed', $responseData);
+}
