@@ -326,3 +326,30 @@ Transaction ID: 275560372515 is insufficient for certification, as it's just MOT
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+if (json_decode($response)->Transaction->ResponseCode == 0) {
+                $response['TransactionID'] = $request->TransactionID;
+                // $isIncidentCreated = Incident::where('id', $orderId)->first();
+                // if ($isIncidentCreated) {
+                //     $parts = explode('_', $orderId);
+                //     $authIdPart = $parts[0]; // Get the first part
+                //     $isTransactionCreated = $isIncidentCreated->transaction()->create([
+                //         // 'user_id' => $attributes['user_id'],
+                //         'user_id' => $authIdPart,
+                //         'amount' => json_decode($response)?->Transaction?->amount?->value ?? json_decode($response)?->Transaction?->amount,
+                //         'currency' => getSiteSetting('currency_code') ?? 'AED',
+                //         'json_response' => json_decode($response) ?? null,
+                //     ]);
+                // }
+                return $this->responseJson(true, 200, 'Make Payment Successfully', json_decode($response));
+
