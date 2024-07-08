@@ -1,14 +1,22 @@
-Dear Sir/Ma'am,
+                <div class="modal-body generate-qr" style="">
+                    <div class="qrcode_box generate-qr" id="generate-qr" style="">
+                        <div class="qr_code" style="margin-left: 120px;padding: 15px;">
+                            {!! DNS2D::getBarcodeHTML(Crypt::encrypt($stand->id), 'QRCODE', 4, 4, 'black', true) !!}
+                        </div>
+                    </div>
+                    <div class="qr_download" style="margin-left: 130px;margin-top:15px;">
+                        <button type="button" class="btn btn-success btn-qr download" id="download">Download
+                            QR</button>
+                        <button type="button" onclick="window.print()" class="btn btn-success btn-qrprint">Print
+                            QR</button>
+                    </div>
+                </div>
 
-I hope this message finds you well. I am writing to provide clarification and justification for the recent leaves I have taken from work due to personal reasons. I deeply apologize for any inconvenience my absence may have caused and appreciate your understanding during this time.
-
-I understand the importance of consistent attendance and my role in the team's operations. I assure you that I am committed to minimizing any disruption caused by my absence. I have been actively working to delegate tasks, provide necessary instructions, and maintain communication with my colleagues to ensure continuity in our projects.
-
-Total leaves from previous 3 months -
-April - 0
-May - 2
-June - 2
-
-Thank you once again for your patience and consideration.
 
 
+            function screenshot() {
+    html2canvas(document.getElementsByClassName("generate-qr")[0]).then(function (canvas) {
+        console.log(canvas.toDataURL());
+        downloadImage(canvas.toDataURL(), "qrcodestand.png");
+    });
+   }
