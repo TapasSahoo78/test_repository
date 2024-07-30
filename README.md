@@ -1,48 +1,68 @@
-The issue seems to be related to how the `html2canvas` library captures the QR code and triggers the download. To debug this, ensure that `html2canvas` is correctly integrated and the `downloadImage` function works as intended. Here is an updated version of your code to help you troubleshoot and ensure that the QR code is downloaded properly:
+To calculate the distance between two points using their geographical coordinates (latitude and longitude) in Laravel, you can use the Haversine formula. This formula accounts for the Earth's curvature and is often used in geolocation calculations.
 
-1. Make sure to include `html2canvas` in your project.
-2. Verify the `downloadImage` function is correctly defined.
-3. Ensure the modal is fully rendered before attempting to capture the QR code.
+Here's a basic example of how you can implement this in Laravel:
 
-Here's a revised version of your code:
+1. **Create a function to calculate the distance:**
 
-```html
-<div class="modal-body generate-qr" style="">
-    <div class="qrcode_box generate-qr" id="generate-qr" style="">
-        <div class="qr_code" style="margin-left: 120px;padding: 15px;">
-            {!! DNS2D::getBarcodeHTML(Crypt::encrypt($stand->id), 'QRCODE', 4, 4, 'black', true) !!}
-        </div>
-    </div>
-    <div class="qr_download" style="margin-left: 130px;margin-top:15px;">
-        <button type="button" class="btn btn-success btn-qr download" id="download" onclick="screenshot()">Download QR</button>
-        <button type="button" onclick="window.print()" class="btn btn-success btn-qrprint">Print QR</button>
-    </div>
-</div>
+```php
+function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
+{
+    // Convert from degrees to radians
+    $latFrom = deg2rad($latitudeFrom);
+    $lonFrom = deg2rad($longitudeFrom);
+    $latTo = deg2rad($latitudeTo);
+    $lonTo = deg2rad($longitudeTo);
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
-<script>
-function screenshot() {
-    html2canvas(document.getElementsByClassName("generate-qr")[0]).then(function(canvas) {
-        console.log(canvas.toDataURL());
-        downloadImage(canvas.toDataURL(), "qrcodestand.png");
-    });
+    $latDelta = $latTo - $latFrom;
+    $lonDelta = $lonTo - $lonFrom;
+
+    $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+      cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+    return $angle * $earthRadius;
 }
-
-function downloadImage(data, filename) {
-    var a = document.createElement('a');
-    a.href = data;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
-</script>
 ```
 
-### Explanation:
-1. **QR Code Generation**: Make sure the QR code is correctly rendered in the modal.
-2. **html2canvas Integration**: Included the script for `html2canvas` and used it to capture the QR code.
-3. **Download Function**: Added the `downloadImage` function to trigger the download of the captured image.
-4. **Button Click**: Attached the `screenshot` function to the download button.
+2. **Usage:**
 
-Ensure that `html2canvas` library version and usage align with your project requirements. If the issue persists, check for any console errors or warnings that might provide more insights.
+To use this function, you need to pass the latitude and longitude of the two points you want to calculate the distance between:
+
+```php
+$latitudeFrom = 40.7128;  // New York City
+$longitudeFrom = -74.0060;
+$latitudeTo = 34.0522;    // Los Angeles
+$longitudeTo = -118.2437;
+
+$distance = haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
+
+echo "Distance: " . $distance . " meters";
+```
+
+This will calculate the distance in meters. You can change the `$earthRadius` parameter to 6371 to get the distance in kilometers.
+
+### Using Eloquent and Raw SQL
+
+If you're working with a database and Eloquent, you can use raw SQL to calculate distances directly in your queries. Here's an example:
+
+```php
+use Illuminate\Support\Facades\DB;
+
+$latitude = 40.7128;
+$longitude = -74.0060;
+$radius = 10000; // Radius in meters
+
+$nearbyLocations = DB::table('locations')
+    ->select('locations.*', DB::raw("(
+        6371000 * acos(cos(radians($latitude)) 
+        * cos(radians(locations.latitude)) 
+        * cos(radians(locations.longitude) - radians($longitude)) 
+        + sin(radians($latitude)) 
+        * sin(radians(locations.latitude)))
+    ) AS distance"))
+    ->having('distance', '<', $radius)
+    ->orderBy('distance')
+    ->get();
+```
+
+This query selects locations within a certain radius (in meters) from a specified point, ordered by distance. The `locations` table should have `latitude` and `longitude` columns.
+
+This approach is efficient for finding nearby locations and is often used in applications like location-based services or delivery apps.
