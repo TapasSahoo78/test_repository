@@ -1,23 +1,6 @@
-                $booking = Booking::where([
-                    'id' => $request->booking_id,
-                    // 'status' => 1
-                ])->lockForUpdate()->first();
+mongodb://root:%24tr0ngPa%24%24w0rD@3.111.66.206:27017/silver_shine?retryWrites=true&w=majority?directConnection=true
 
-if ($request->status == 2 || $request->status == 11) {
-                    // if ($booking?->status != 1) {
-                    //     return $this->apiResponseJson(false, 200, 'Already Accepted other driver!', (object) []);
-                    // }
-                    $testCheck = BulkDriverBooking::where(['booking_id' => $request->booking_id, 'driver_id' => Auth::id()])->whereNotIn('status', [4])->lockForUpdate()->exists();
-                    if (!$testCheck) {
-                        if ($booking && isset($booking->bulk_driver) && !empty($booking->bulk_driver)) {
-                            $bulkCount = BulkDriverBooking::where('booking_id', $request->booking_id)
-                                ->whereNotIn('status', [1, 4, 10])
-                                ->lockForUpdate()
-                                ->count();
-
-                            if ($booking->bulk_driver <= $bulkCount) {
-                                return $this->apiResponseJson(false, 200, 'Already accepted ' . $booking->bulk_driver . ' driver(s). It is not available now!', (object) []);
-                            }
-                        }
-                    }
-                }
+MongoServerSelectionError: connection timed out
+    at Timeout._onTimeout (/var/www/html/admin/node_modules/mongodb/lib/sdam/topology.js:278:38)
+    at listOnTimeout (node:internal/timers:573:17)
+    at process.processTimers (node:internal/timers:514:7)
