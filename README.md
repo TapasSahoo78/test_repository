@@ -1,11 +1,16 @@
 function fetchCurrentLocation(e, key) {
     e.preventDefault(); // Prevent default form submission
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 5000,
+            maximumAge: 0
+        };
+        
+        const success = function(position) {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
 
-            // Alert the fetched coordinates (you can remove this if not needed)
             alert(latitude + '||||' + longitude);
 
             // Update the specific stop
@@ -23,10 +28,14 @@ function fetchCurrentLocation(e, key) {
             longitudeFields.forEach(function(lonField) {
                 lonField.value = longitude;
             });
+        };
 
-        }, function() {
+        const error = function() {
             alert('Unable to retrieve your location.');
-        });
+        };
+
+        navigator.geolocation.watchPosition(success, error, options);
+
     } else {
         alert('Geolocation is not supported by this browser.');
     }
