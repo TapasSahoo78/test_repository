@@ -1,4 +1,5 @@
-                                                   <div class="m-2" style="">
+@foreach (getTimeSlotBus($bus_details->id, $type)?->first()?->getBusTimeTypeSlot as $key => $value)                                                   
+<div class="m-2" style="">
                                                         <input type="text" value="{{ $value?->latitude }}"
                                                             class="form-control latitude" name="latitude[]"
                                                             id="latitude-{{ $key }}" placeholder="Enter Latitude"
@@ -14,7 +15,7 @@
                                                                 Location</button>
                                                         </center>
                                                     </div>
-
+@endforeach
 
 
 
