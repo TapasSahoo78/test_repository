@@ -1,35 +1,33 @@
-@foreach (getTimeSlotBus($bus_details->id, $type)?->first()?->getBusTimeTypeSlot as $key => $value)                                                   
-<div class="m-2" style="">
-                                                        <input type="text" value="{{ $value?->latitude }}"
-                                                            class="form-control latitude" name="latitude[]"
-                                                            id="latitude-{{ $key }}" placeholder="Enter Latitude"
-                                                            readonly>
-                                                        <input type="text" value="{{ $value?->longitude }}"
-                                                            onkeyup="initializeAutocomplete({{ $key }})"
-                                                            class="form-control longitude" name="longitude[]"
-                                                            id="longitude-{{ $key }}"
-                                                            placeholder="Enter Longitude" readonly>
-                                                        <center>
-                                                            <button type="button" class="btn btn-warning"
-                                                                onclick="fetchCurrentLocation(event, {{ $key }})">Current
-                                                                Location</button>
-                                                        </center>
-                                                    </div>
-@endforeach
+function fetchCurrentLocation(e, key) {
+    e.preventDefault(); // Prevent default form submission
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
 
+            // Alert the fetched coordinates (you can remove this if not needed)
+            alert(latitude + '||||' + longitude);
 
+            // Update the specific stop
+            document.getElementById('latitude-' + key).value = latitude;
+            document.getElementById('longitude-' + key).value = longitude;
 
-           function fetchCurrentLocation(e, key) {
-            e.preventDefault(); // Prevent default form submission
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    alert(position.coords.latitude + '||||' + position.coords.longitude);
-                    document.getElementById('latitude-' + key).value = position.coords.latitude;
-                    document.getElementById('longitude-' + key).value = position.coords.longitude;
-                }, function() {
-                    alert('Unable to retrieve your location.');
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        }
+            // Update all stops with the same latitude and longitude
+            const latitudeFields = document.querySelectorAll('.latitude');
+            const longitudeFields = document.querySelectorAll('.longitude');
+
+            latitudeFields.forEach(function(latField) {
+                latField.value = latitude;
+            });
+
+            longitudeFields.forEach(function(lonField) {
+                lonField.value = longitude;
+            });
+
+        }, function() {
+            alert('Unable to retrieve your location.');
+        });
+    } else {
+        alert('Geolocation is not supported by this browser.');
+    }
+}
