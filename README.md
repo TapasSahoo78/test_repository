@@ -1,27 +1,6 @@
-$data = [
-                    "message" => [
-                        "token" => $deviceToken,
-                        // "notification" => array(),
-                        "data" => $notiFicationdata,
-                        "android" => [
-                            "priority" => "high",
-                        ],
-                        "apns" => [
-                            "headers" => [
-                                "apns-priority" => "10",
-                            ],
-                            "payload" => [
-                                "aps" => [
-                                    "content-available" => 1,
-                                    "mutable-content" => 1,
-                                    // 'alert' => [
-                                    //     'title' => $title,
-                                    //     'body' => $body,
-                                    // ],
-                                ]
-                            ],
-                        ],
-                    ]
-                ];
+$query->where('scheduled_at', '>=', Carbon::parse($request->from_date)->toDateString())
+                ->where('scheduled_at', '<=', Carbon::parse($request->to_date)->toDateString())
+                ->whereIn('status', [0, 1, 2, 3, 5, 6]);
 
-for ios silent notification.
+
+when from and to date equal is not working
