@@ -1,7 +1,27 @@
-var night_charge = 0.00;
-let [hour, minute] = formattedTime.split(":");
-
-// Check if the time is greater than or equal to 21:00 (9:00 PM)
-if (parseInt(hour) > 20 || (parseInt(hour) === 20 && parseInt(minute) >= 59)) {
-    night_charge = parseFloat(data?.data?.price?.nightCharge) || 0.00; // Ensure it's a number
-}
+('#usersTable').DataTable({
+    dom: 'Bfrtip',
+    buttons: [
+        {
+            extend: 'csv',
+            title: 'Users Data',
+            exportOptions: {
+                columns: [0, 1, 2] // Exclude the 'Created At' column (index 3)
+            }
+        },
+        {
+            extend: 'excel',
+            title: 'Users Data'
+        },
+        {
+            extend: 'pdf',
+            title: 'Users Data',
+            exportOptions: {
+                columns: [0, 1, 2] // Exclude the 'Created At' column (index 3)
+            }
+        },
+        {
+            extend: 'print',
+            title: 'Users Data'
+        }
+    ]
+});
