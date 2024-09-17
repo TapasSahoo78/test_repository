@@ -1,72 +1,70 @@
-<div class="location-top">
-    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="pills-home-tab" data-bs-toggle="pill"
-                data-bs-target="#pills-home" type="button" role="tab"
-                aria-controls="pills-home" aria-selected="true">Start Time</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="pills-profile-tab" data-bs-toggle="pill"
-                data-bs-target="#pills-profile" type="button" role="tab"
-                aria-controls="pills-profile" aria-selected="false">End Time</button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="pills-tabContent">
-        <!-- Start Time Tab -->
-        <div class="tab-pane fade show active" id="pills-home" role="tabpanel"
-            aria-labelledby="pills-home-tab">
-            <div class="container mt-3">
-                <div class="card">
-                    <div class="card-body">
-                        <!-- Vehicle Info -->
-                        <div class="row">
-                            <div class="col-md-6">
-                                <p><strong>Vehicle Number:</strong> MH04GZ9953</p>
-                                <p><strong>Start Date & Time:</strong> 09-09-24 | 09:38 AM</p>
-                            </div>
-                        </div>
-
-                        <!-- Photos Section -->
-                        <div class="row mt-3">
-                            <!-- Driver Photo -->
-                            <div class="col-md-4">
-                                <p><strong>Driver Photo</strong></p>
-                                <div class="border bg-light"
-                                    style="height: 150px; width: 100%; display: flex; justify-content: center; align-items: center;">
-                                    <img src="driver_photo.jpg" alt="Driver Photo"
-                                        class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: cover;">
-                                </div>
-                            </div>
-
-                            <!-- First Car Meter -->
-                            <div class="col-md-4">
-                                <p><strong>First Car Meter</strong></p>
-                                <img src="meter_photo.jpg" alt="First Car Meter" class="img-fluid">
-                            </div>
-
-                            <!-- Other Photos -->
-                            <div class="col-md-4">
-                                <p><strong>Other Photos</strong></p>
-                                <div class="d-flex">
-                                    <img src="other_photo1.jpg" alt="Other Photo 1"
-                                        class="img-fluid me-2" style="max-width: 32%;">
-                                    <img src="other_photo2.jpg" alt="Other Photo 2"
-                                        class="img-fluid me-2" style="max-width: 32%;">
-                                    <img src="other_photo3.jpg" alt="Other Photo 3"
-                                        class="img-fluid" style="max-width: 32%;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- End Time Tab -->
-        <div class="tab-pane fade" id="pills-profile" role="tabpanel"
-            aria-labelledby="pills-profile-tab">
-            <!-- Similar layout for End Time (if required) -->
-        </div>
-    </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Design</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        .left-align {
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">#</th>
+                <th colspan="2">Particular / التفاصيل</th>
+                <th colspan="2">Charge / رسوم</th>
+            </tr>
+            <tr>
+                <th>No Of Days Stayed</th>
+                <th>Towing Charge</th>
+                <th>AED</th>
+                <th>Fils</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td class="left-align">No Of Days Stayed</td>
+                <td class="left-align">489</td>
+                <td>0</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td class="left-align">Towing Charge</td>
+                <td class="left-align">539</td>
+                <td>50</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="left-align"><strong>Total</strong></td>
+                <td>565</td>
+                <td>95</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="left-align"><strong>VAT 5%</strong></td>
+                <td>26</td>
+                <td>95</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="left-align"><strong>Total Amount</strong></td>
+                <td>565</td>
+                <td>95</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
