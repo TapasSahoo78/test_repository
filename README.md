@@ -4,38 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Table Design</title>
+    <title>Invoice PDF</title>
     <style>
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 12px;
         }
 
-        table,
-        th,
-        td {
+        th, td {
             border: 1px solid black;
+            padding: 8px;
+            text-align: center;
         }
 
-        th,
-        td {
-            padding: 10px;
+        .header {
             text-align: center;
+            font-weight: bold;
         }
 
         .left-align {
             text-align: left;
         }
-        .main-download{
-            margin-bottom: 20px !important;
+
+        p {
+            margin: 5px 0;
+            font-size: 14px;
         }
     </style>
 </head>
 
 <body>
-    <table border="1" class="container" id="invoiceContent">
-        <thead>
 
+    <table>
+        <thead>
             <tr>
                 <td colspan="8" class="header">
                     <p>
@@ -47,26 +49,15 @@
                     </p>
                 </td>
             </tr>
-
             <tr>
-                <td style="font-weight: 600;text-align: left;padding-bottom:20px" colspan="8">
-                    <div class="text-left">
-                        1
-                    </div>
-                </td>
+                <td colspan="8" class="left-align">1</td>
             </tr>
             <tr>
-                <td style="font-weight: 600;text-align: left;padding-bottom:20px" colspan="8">
-                    3
-                </td>
+                <td colspan="8" class="left-align">3</td>
             </tr>
-            <tr></tr>
-            <td style="font-weight: 600;text-align: left;padding-bottom:20px" colspan="8">
-                3
-            </td>
+            <tr>
+                <td colspan="8" class="left-align">3</td>
             </tr>
-
-
 
             <tr>
                 <th colspan="2">Charge / رسوم</th>
@@ -81,42 +72,21 @@
         </thead>
         <tbody>
             <tr>
-                <th>1</th>
-                <th>2</th>
-
-                <th colspan="2">2222</th>
-                <th colspan="2">3333</th>
-                <th>4444</th>
-
+                <td>1</td>
+                <td>50</td>
+                <td colspan="2">2222</td>
+                <td colspan="2">3333</td>
+                <td>1</td>
             </tr>
             <tr>
-            <tr>
-                <th>1</th>
-                <th>2</th>
-
-                <th colspan="2">2222</th>
-                <th colspan="2">3333</th>
-                <th>4444</th>
-            </tr>
-            </tr>
-            <th>1</th>
-            <th>2</th>
-
-            <th colspan="2">2222</th>
-            <th colspan="2">3333</th>
-            <th>4444</th>
+                <td>1</td>
+                <td>50</td>
+                <td colspan="2">2222</td>
+                <td colspan="2">3333</td>
+                <td>2</td>
             </tr>
         </tbody>
     </table>
-
-    <div class="main-download">
-        <center>
-            <div class="download">
-                <button class="btn btn-primary btn-md" id="printInvoice">Print</button>
-                <button class="btn btn-primary btn-md" id="downloadInvoice">Download</button>
-            </div>
-        </center>
-    </div>
 
 </body>
 
