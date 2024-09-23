@@ -1,11 +1,18 @@
-B2B Fare Calculation -
+Here's a corrected and more structured version of your requirements:
 
-Hourly price will be only single field.
+B2B Fare Calculation:
 
-If distance matches from master data, so price set with distance price; otherwise, multiply with extra km fields.
+The hourly price should be set as a single field.
+
+If the distance matches with the master data, the fare will be set according to the predefined distance price.
+
+If the distance doesn't match, calculate the fare by multiplying the extra kilometers with the hourly rate.
 
 
+Driver Payout:
 
-Driver Payout - 
+Review and discuss the driver payout based on the B2C payout history for consistency and adjustments.
 
-Discuss with B2C payout history.
+
+Let me know if this captures what you intended or if further adjustments are needed!
+
