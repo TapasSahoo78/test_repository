@@ -1,30 +1,11 @@
-<tr>
-    <td colspan="8">
-        <table width="100%">
-            <tr>
-                <td style="text-align: left;">1</td>
-                <td style="text-align: right;">2</td>
-            </tr>
-        </table>
-    </td>
-</tr>
-<tr>
-    <td colspan="8">
-        <table width="100%">
-            <tr>
-                <td style="text-align: left;">3</td>
-                <td style="text-align: right;">4</td>
-            </tr>
-        </table>
-    </td>
-</tr>
-<tr>
-    <td colspan="8">
-        <table width="100%">
-            <tr>
-                <td style="text-align: left;">5</td>
-                <td style="text-align: right;">6</td>
-            </tr>
-        </table>
-    </td>
-</tr>
+B2B Fare Calculation -
+
+Hourly price will be only single field.
+
+If distance matches from master data, so price set with distance price; otherwise, multiply with extra km fields.
+
+
+
+Driver Payout - 
+
+Discuss with B2C payout history.
