@@ -1,38 +1,24 @@
-Sure! Here's a sample email you can use to share your employee's details with your boss:
+Here are a few question ideas based on the context of entering Japa counts for each Anushthana:
+
+1. How can users input their daily Japa counts for each Anushthana?
 
 
----
-
-Subject: Employee Details as Discussed
-
-Dear [Boss's Name],
-
-As per our discussion, I’m sharing the details of [Employee's Name] below:
-
-Name: [Employee's Full Name]
-
-Position: [Employee's Position]
-
-Department: [Employee's Department]
-
-Joining Date: [Date of Joining]
-
-Key Skills: [Mention specific skills and strengths]
-
-Current Project: [Details of the project they are working on, if applicable]
-
-Performance Highlights: [Share any notable accomplishments or strengths]
+2. What is the process for entering Japa counts into each Anushthana?
 
 
-Please let me know if you need any further information.
-
-Best regards,
-[Your Name]
-[Your Position]
-[Your Contact Information]
+3. Can users edit their Japa count after submission?
 
 
----
+4. Is there a limit on how many Japa counts users can enter daily?
 
-Feel free to adjust the details as needed.
+
+5. How do users track their progress in each Anushthana?
+
+
+6. Are users notified when they complete a Japa count milestone?
+
+
+7. Can users view a history of their Japa counts over time?
+
+
 
