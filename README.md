@@ -1,12 +1,11 @@
-Here’s a corrected version of your steps:
+Subject: Leave Request for Kali Puja on 1st November 2024
 
-1. First, send a request to the Booking.com API.
+Dear [HR Manager's Name],
 
+I hope this message finds you well. I am writing to request a one-day leave on 1st November 2024 for the occasion of Kali Puja.
 
-2. Then, the admin of SFTBus needs to approve the booking request.
+Please let me know if you need any further information. Thank you for your consideration.
 
-
-3. Once approved, the booking details will be visible.
-
-
+Best regards,
+[Your Name]
 
