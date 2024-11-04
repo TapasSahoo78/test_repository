@@ -1,10 +1,37 @@
-User App - 
-1. Schedule notification to all users for departure time every day at 3 PM
-2. Refresh button add to live update in list view.
-3. The bus icon has been changed in map view.
-4. Now if you want to add new users ,mail to Niranjan from HR then the new users is added.
+Here’s a refined version with corrected grammar and clarity:
 
-Coordinate App -
-1. Coordinator app should be removed instead of that all coordinators will use user app and get coordinator all access. 
-2. Update evening start time by coordinate.
-3. Now all the buses are tracked by GPS.
+
+---
+
+User App:
+
+1. Schedule a daily notification for all users with the departure time at 3 PM.
+
+
+2. Add a refresh button for live updates in the list view.
+
+
+3. The bus icon in the map view has been updated.
+
+
+4. To add new users, please email Niranjan from HR, who will handle new user additions.
+
+
+
+Coordinator App:
+
+1. The Coordinator App will be discontinued; all coordinators will now use the User App with full coordinator access.
+
+
+2. Update the evening start time as per the coordinator’s settings.
+
+
+3. All buses are now tracked via GPS.
+
+
+
+
+---
+
+This version improves readability and provides clearer instructions.
+
