@@ -1,83 +1,47 @@
-    public function rules()
-    {
-        return [
-            'userType'      => 'required|string|exists:roles,slug',
-            'firstname'     => 'required|string',
-            'lastname'      => 'required|string',
-            'gender'        => 'required|string|in:male,female,transgender',
-            'phone_number'  => 'required|numeric|gte:6000000000|lte:9999999999',
-            'alternate_phone_number'  => 'sometimes|nullable|gte:6000000000|lte:9999999999',
-            'aadhar_number' => 'required_if:userType,driver,car-owner|nullable|numeric|gte:100000000000|lte:999999999999',
-            'birthday'      => 'required_if:userType,customer,driver,car-owner|nullable|date_format:Y-m-d|before:-18 years',
-            'address'       => 'required|string|max:255',
-            'pin_code'      => 'required|numeric|min:100000|max:999999',
-            'state'         => 'required|string|exists:states,slug',
-            'city'          => 'required|string|exists:districts,slug',
-            'email'         => 'required|email|unique:users,email',
-            'password'      => 'required|string|min:6|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,}$/',
-            'media'         => 'sometimes',
-            'media.*'       => 'image|mimes:jpg,jpeg,png',
-            'media.profile_picture'     => 'required_if:userType,driver',
-            'media.aadhar_image'        => 'required_if:userType,driver,car-owner',
-            'media.insurance_image'        => 'required_if:userType,car-owner',
-            'media.driving_licence_image'    => 'required_if:userType,driver',
-            'meta_details'  =>  'sometimes|array|min:1',
-            'meta_details.brand'  =>'required_with:meta_details.model,meta_details.technology|string|nullable',
-            'meta_details.model'  =>'required_with:meta_details.brand,meta_details.technology|string|nullable',
-            'meta_details.technology'  =>'required_with:meta_details.brand,meta_details.model|string|nullable|in:automatic,manual,both',
-            'meta_details.car_number'  =>'string|nullable',
-            'meta_details.fair_charge' =>'numeric|min:1|max:9999|nullable',
-            'meta_details.licence_no'  =>'required_if:userType,driver|string|nullable',
-            'car_details'  =>  'required_if:userType,car-owner|array|min:7',
-            'car_details.*' =>  'required|string',
-            'car_details.car_number' =>  'alpha_num|unique:car_numbers,car_number',
-        ];
-    }
-    public function messages(){
-        return [
-            'userType.required'     => 'Usertype Not Defined',
-            'gender.required'       => 'Please select your :attribute',
-            'gender.in'             => 'Selected :attribute is invalid',
-            'userType.exists'       => 'Usertype Does not exist',
-            'phone_number.required' => 'Please enter a :attribute',
-            'aadhar_number.required' => 'Please enter a :attribute',
-            'aadhar_number.required_if' => 'Please enter a :attribute',
-            'state.required'        => 'Please select a :attribute',
-            'state.exists'          => 'Selected :attribute not valid',
-            'city.required'         => 'Please select a :attribute',
-            'city.exists'           => 'Selected :attribute not valid',
-            'pin_code.required'     => 'Please Enter a :attribute',
-            'email.unique'          => 'This :attribute alreay exist in our system',
-            'meta_details.licence_no.required_if' => 'Please Enter a :attribute',
-            'password.regex'        => ':attribute should contain minimum of 6 characters, uppercase letter, lowercase letter and a number',
-        ];
-    }
-    public function attributes(){
-        return
-        [
-            'firstname'=> 'First Name',
-            'lastname'=> 'Last Name',
-            'address'=> 'Address',
-            'state'=> 'State',
-            'gender'=> 'Gender',
-            'phone_number'=>'Contact Number',
-            'aadhar_number'=>'Aadhar Number',
-            'birthday'=>'Birthday',
-            'meta_details'=>'Optional Details',
-            'pin_code'=>'Pincode',
-            'meta_details.brand'=>'Car Brand',
-            'meta_details.licence_no'=>'Driving Licence Number',
-            'meta_details.model'=>'Car Model',
-            'meta_details.technology'=>'Car Technology',
-            'meta_details.car_number'=>'Car Number',
-            'meta_details.polution_no'=>'Polution No.',
-            'meta_details.insurance_no'=>'Insurance No.',
-            'meta_details.rc_no'=>'Rc No.',
-            'meta_details.fair_charge'=>'Fair Charge',
-            'alternate_phone_number'=>'Alternate contact number',
-            'media.profile_picture'=>'Profile Image',
-            'media.aadhar_image'=>'Aadhar Photo',
-            'media.driving_licence_image'=>'Driving Licence Photo',
-        ];
-    }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quill Editor with Code</title>
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css">
+</head>
+<body>
+    <h1>Quill Editor with Syntax Highlighting</h1>
+    <form action="{{ route('save.code') }}" method="POST">
+        @csrf
+        <div id="editor-container" style="height: 400px;"></div>
+        <textarea name="content" id="content" hidden></textarea>
+        <button type="submit">Save Code</button>
+    </form>
+
+    <!-- Include Quill and Highlight.js -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <script>
+        // Initialize Highlight.js
+        hljs.configure({ languages: ['javascript', 'python', 'php', 'html', 'css', 'java', 'csharp', 'go', 'ruby'] });
+
+        // Initialize Quill Editor with Syntax Highlighting
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                syntax: true, // Enable syntax module
+                toolbar: [
+                    [{ header: [1, 2, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['code-block', 'link', 'image'], // Add code block option
+                ]
+            }
+        });
+
+        // Sync content to textarea on form submission
+        document.querySelector('form').onsubmit = function () {
+            document.querySelector('#content').value = quill.root.innerHTML;
+        };
+    </script>
+</body>
+</html>
