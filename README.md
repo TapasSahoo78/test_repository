@@ -73,3 +73,30 @@
     </script>
 </body>
 </html>
+
+
+
+
+
+public function showRoutes()
+{
+    $startLocations = [
+        [
+            'driver_id' => 1,
+            'pickup_latitude' => 37.7749,
+            'pickup_longitude' => -122.4194,
+            'drop_latitude' => 34.0522,
+            'drop_longitude' => -118.2437,
+        ],
+        [
+            'driver_id' => 2,
+            'pickup_latitude' => 40.7128,
+            'pickup_longitude' => -74.0060,
+            'drop_latitude' => 41.8781,
+            'drop_longitude' => -87.6298,
+        ],
+        // Add more routes as needed
+    ];
+
+    return view('routes', compact('startLocations'));
+}
