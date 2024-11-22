@@ -1,59 +1,38 @@
-<script>
-    function initDoubleMap() {
-        @foreach ($startLocations as $key => $booking)
-            (function() {
-                // Block scope to avoid overwriting variables
-                var startLatitude = {{ $booking['pickup_latitude'] }};
-                var startLongitude = {{ $booking['pickup_longitude'] }};
-                var endLatitude = {{ $booking['drop_latitude'] }};
-                var endLongitude = {{ $booking['drop_longitude'] }};
-                var driverId = {{ $booking['driver_id'] }};
+function calculateCost($distance)
+{
+    // Define the ranges and costs
+    $rates = [
+        ['min' => 0, 'max' => 10, 'base_cost' => 200, 'extra_cost_per_km' => 12],
+        ['min' => 20, 'max' => 40, 'base_cost' => 300, 'extra_cost_per_km' => 0],
+        ['min' => 100, 'max' => 1000, 'base_cost' => 500, 'extra_cost_per_km' => 0],
+    ];
 
-                // Log data for debugging
-                console.log(`Driver ${driverId}:`, startLatitude, startLongitude, endLatitude, endLongitude);
+    $cost = 0;
 
-                var mapDiv = document.getElementById('map-' + driverId);
-                if (!mapDiv) {
-                    console.log(`Map div not found for driver: ${driverId}`);
-                    return; // Skip this iteration if the map div is not found
+    foreach ($rates as $rate) {
+        if ($distance >= $rate['min'] && $distance <= $rate['max']) {
+            // Calculate the cost based on the range
+            $cost = $rate['base_cost'];
+
+            // Add extra cost for distances exceeding the base range
+            if (isset($rate['extra_cost_per_km']) && $rate['extra_cost_per_km'] > 0) {
+                $excess_km = $distance - $rate['max'];
+                if ($excess_km > 0) {
+                    $cost += $excess_km * $rate['extra_cost_per_km'];
                 }
+            }
 
-                // Initialize the map
-                var map = new google.maps.Map(mapDiv, {
-                    zoom: 10,
-                    center: {
-                        lat: startLatitude,
-                        lng: startLongitude
-                    }
-                });
-
-                // Create DirectionsRenderer and attach to map
-                var directionsRenderer = new google.maps.DirectionsRenderer();
-                directionsRenderer.setMap(map);
-
-                // Request directions for the route
-                var directionsService = new google.maps.DirectionsService();
-                directionsService.route({
-                    origin: {
-                        lat: startLatitude,
-                        lng: startLongitude
-                    },
-                    destination: {
-                        lat: endLatitude,
-                        lng: endLongitude
-                    },
-                    travelMode: 'DRIVING'
-                }, function(response, status) {
-                    if (status === 'OK') {
-                        directionsRenderer.setDirections(response);
-                    } else {
-                        console.error(`Directions request failed for driver ${driverId}: ${status}`);
-                    }
-                });
-            })(); // Immediately invoke the function to create a unique scope for each iteration
-        @endforeach
+            break;
+        }
     }
 
-    // Initialize the maps when the window loads
-    window.onload = initDoubleMap;
-</script>
+    return $cost;
+}
+
+
+
+$distance1 = 15; // Example distance
+$distance2 = 21;
+
+echo "Cost for distance 15: " . calculateCost($distance1); // Output: 260
+echo "Cost for distance 21: " . calculateCost($distance2); // Output: 300
