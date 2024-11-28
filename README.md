@@ -1,38 +1,59 @@
-function calculateCost($distance)
+To implement the functionality where a user can go back to the previous page with the same pagination number in Laravel, follow these steps:
+
+1. Pass the Current Page in the URL:
+
+When navigating to the details page, pass the current page number as a query parameter:
+
+In the Booking List View:
+
+<a href="{{ route('booking.details', ['id' => $booking->id, 'page' => request('page')]) }}">View Details</a>
+
+2. Modify the Route:
+
+Ensure your route is set up to accept query parameters.
+
+In web.php:
+
+Route::get('/booking/details/{id}', [BookingController::class, 'show'])->name('booking.details');
+
+3. Handle the Page Parameter in the Controller:
+
+In BookingController:
+
+public function show($id)
 {
-    // Define the ranges and costs
-    $rates = [
-        ['min' => 0, 'max' => 10, 'base_cost' => 200, 'extra_cost_per_km' => 12],
-        ['min' => 20, 'max' => 40, 'base_cost' => 300, 'extra_cost_per_km' => 0],
-        ['min' => 100, 'max' => 1000, 'base_cost' => 500, 'extra_cost_per_km' => 0],
-    ];
+    $booking = Booking::findOrFail($id);
+    $page = request('page', 1); // Default to page 1 if not provided
 
-    $cost = 0;
+    return view('booking.details', compact('booking', 'page'));
+}
 
-    foreach ($rates as $rate) {
-        if ($distance >= $rate['min'] && $distance <= $rate['max']) {
-            // Calculate the cost based on the range
-            $cost = $rate['base_cost'];
+4. Set the Back Button to Redirect to the Previous Page:
 
-            // Add extra cost for distances exceeding the base range
-            if (isset($rate['extra_cost_per_km']) && $rate['extra_cost_per_km'] > 0) {
-                $excess_km = $distance - $rate['max'];
-                if ($excess_km > 0) {
-                    $cost += $excess_km * $rate['extra_cost_per_km'];
-                }
-            }
+In the Booking Details View:
 
-            break;
-        }
-    }
+<a href="{{ route('bookings.index', ['page' => $page]) }}">Back to List</a>
 
-    return $cost;
+5. Maintain Pagination in the Index Method (Optional):
+
+In BookingController:
+
+public function index()
+{
+    $bookings = Booking::paginate(10); // Adjust the per-page number as needed
+
+    return view('bookings.index', compact('bookings'));
 }
 
 
+---
 
-$distance1 = 15; // Example distance
-$distance2 = 21;
+Final Flow:
 
-echo "Cost for distance 15: " . calculateCost($distance1); // Output: 260
-echo "Cost for distance 21: " . calculateCost($distance2); // Output: 300
+When a user clicks View Details, the page parameter is passed to the details route.
+
+The Back to List button redirects back to the booking list with the same pagination.
+
+
+This way, the pagination state will be preserved when navigating back to the list.
+
