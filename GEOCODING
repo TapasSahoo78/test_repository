@@ -1,0 +1,91 @@
+const tabs = document.querySelectorAll('.tab-pane');
+const tabContent = document.getElementById('myTabContent');
+
+// Define the component restrictions for India
+const indiaBounds = {
+    country: 'IN' // ISO 3166-1 alpha-2 country code for India
+};
+
+tabs.forEach((tab, index) => {
+    const pickupInput = tab.querySelector('.pickupLocation-' + (index + 1));
+    const dropInput = tab.querySelector('.dropLocation-' + (index + 1));
+
+    const pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput, {
+        componentRestrictions: indiaBounds
+    });
+    const dropAutocomplete = new google.maps.places.Autocomplete(dropInput, {
+        componentRestrictions: indiaBounds
+    });
+
+    let pickupPlaceId = '';
+    let dropPlaceId = '';
+
+    // Get the booking type value
+    const bookingType = tab.querySelector('.booking_type').value;
+
+    pickupAutocomplete.addListener('place_changed', function() {
+        const place = pickupAutocomplete.getPlace();
+        if (place.geometry) {
+            updateLocationFields(tab, place.geometry.location.lat(), place.geometry.location.lng(), '#pickup_latitude', '#pickup_longitude');
+            pickupPlaceId = place.place_id; // Store the Place ID
+
+            // If booking type is 2, copy pickup location to drop location
+            if (bookingType == '2') {
+                dropInput.value = pickupInput.value;
+                dropInput.setAttribute('readonly', 'readonly');
+                dropPlaceId = pickupPlaceId; // Set drop Place ID to pickup Place ID
+                updateLocationFields(tab, place.geometry.location.lat(), place.geometry.location.lng(), '#drop_latitude', '#drop_longitude');
+            }
+
+            calculatePrice(tab, pickupPlaceId, dropPlaceId); // Calculate price using Place IDs
+        }
+    });
+
+    dropAutocomplete.addListener('place_changed', function() {
+        const place = dropAutocomplete.getPlace();
+        if (place.geometry) {
+            updateLocationFields(tab, place.geometry.location.lat(), place.geometry.location.lng(), '#drop_latitude', '#drop_longitude');
+            dropPlaceId = place.place_id; // Store the Place ID
+
+            calculatePrice(tab, pickupPlaceId, dropPlaceId); // Calculate price using Place IDs
+        }
+    });
+});
+
+// Update the calculatePrice function to accept Place IDs
+function calculatePrice(tab, pickupPlaceId, dropPlaceId) {
+    const fareView = tab.querySelector('.fare');
+
+    if (pickupPlaceId && dropPlaceId) {
+        const service = new google.maps.DistanceMatrixService();
+        service.getDistanceMatrix({
+            origins: [pickupPlaceId],
+            destinations: [dropPlaceId],
+            travelMode: 'DRIVING',
+            avoidHighways: false,
+            avoidTolls: false,
+        }, (response, status) => {
+            if (status === 'OK') {
+                const distanceMatrix = response.rows[0].elements[0];
+                if (distanceMatrix.status === 'OK') {
+                    const distance = distanceMatrix.distance.value; // Distance in meters
+                    const distanceInKm = distance / 1000; // Convert meters to kilometers
+                    console.log(`Distance: ${distanceInKm} km`);
+                    fareView.innerText = distanceInKm; // Display the distance or calculate fare based on it
+                } else {
+                    fareView.innerText = 'Route unavailable.'; // Handle errors
+                }
+            } else {
+                fareView.innerText = 'Error calculating distance.';
+            }
+        });
+    } else {
+        fareView.innerText = 'Please select both pickup and drop locations.';
+    }
+}
+
+// Example of the updateLocationFields function
+function updateLocationFields(tab, lat, lng, latFieldSelector, lngFieldSelector) {
+    tab.querySelector(latFieldSelector).value = lat;
+    tab.querySelector(lngFieldSelector).value = lng;
+}
